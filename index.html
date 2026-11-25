@@ -1,0 +1,2566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0c4a6e" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Faro Santander" />
+  <link id="pwaManifestLink" rel="manifest" />
+  <title>Faro Santander — Limpieza y Mantenimiento</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-2: #0b1220;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+      --accent: #0ea5e9;
+      --green: #16a34a;
+      --green-bg: rgba(22, 163, 74, 0.16);
+      --red: #dc2626;
+      --red-bg: rgba(220, 38, 38, 0.18);
+      --amber: #d97706;
+      --amber-bg: rgba(217, 119, 6, 0.16);
+      --off: #64748b;
+      --off-bg: rgba(100, 116, 139, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 84px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0c4a6e, #0f172a);
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .brand-sub {
+      font-size: 0.82rem;
+      color: #bae6fd;
+      margin-top: 2px;
+    }
+
+    .sync-pill {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid #38bdf8;
+      color: #e0f2fe;
+    }
+
+    .day-banner {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .day-active {
+      background: rgba(14, 165, 233, 0.2);
+      border: 1px solid #38bdf8;
+      color: #e0f2fe;
+    }
+
+    .day-rest {
+      background: rgba(148, 163, 184, 0.15);
+      border: 1px solid #475569;
+      color: #cbd5e1;
+    }
+
+    main {
+      padding: 14px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .summary-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .stats-row-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .stat {
+      background: var(--card-2);
+      border-radius: 10px;
+      padding: 8px 6px;
+      border: 1px solid var(--border);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.1rem;
+    }
+
+    .stat span {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .horario-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .horario-btn {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 10px 8px;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .horario-btn.active {
+      background: rgba(14, 165, 233, 0.22);
+      border-color: #38bdf8;
+      color: #f8fafc;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+
+    button.secondary {
+      background: #334155;
+      color: #f8fafc;
+    }
+
+    button.danger {
+      background: var(--red);
+    }
+
+    button.success {
+      background: var(--green);
+    }
+
+    button.ghost-toggle {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+    }
+
+    .grid-6 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .ficha {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      transition: transform 0.12s ease, border-color 0.15s ease;
+    }
+
+    .ficha.estado-verde {
+      border-color: var(--green);
+      background: linear-gradient(180deg, var(--green-bg), var(--card));
+    }
+
+    .ficha.estado-rojo {
+      border-color: var(--red);
+      background: linear-gradient(180deg, var(--red-bg), var(--card));
+    }
+
+    .ficha.estado-pendiente {
+      border-color: var(--amber);
+      background: linear-gradient(180deg, var(--amber-bg), var(--card));
+    }
+
+    .ficha.estado-descanso {
+      border-color: var(--off);
+      background: linear-gradient(180deg, var(--off-bg), var(--card));
+      opacity: 0.9;
+    }
+
+    .ficha-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nombre-btn {
+      background: none;
+      padding: 0;
+      font-size: 1.12rem;
+      font-weight: 800;
+      color: var(--text);
+      text-align: left;
+    }
+
+    .badge {
+      font-size: 0.74rem;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .badge-verde { background: var(--green); color: #fff; }
+    .badge-rojo { background: var(--red); color: #fff; }
+    .badge-pendiente { background: var(--amber); color: #fff; }
+    .badge-descanso { background: var(--off); color: #fff; }
+
+    .no-participa-msg {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px dashed #64748b;
+      color: #cbd5e1;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .campos {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    select, input[type="text"], input[type="date"], textarea {
+      width: 100%;
+      background: var(--card-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 10px;
+      font-size: 0.84rem;
+    }
+
+    .ficha-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .thumbs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .thumbs-grid img {
+      width: 100%;
+      height: 62px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .galeria-thumbs {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .galeria-thumbs img {
+      width: 100%;
+      height: 95px;
+      object-fit: cover;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+    }
+
+    .meta-small {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .status-note {
+      font-size: 0.78rem;
+      color: #7dd3fc;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    .section-view { display: none; }
+    .section-view.active { display: block; }
+
+    .galeria-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .rol-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0b1220;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      z-index: 30;
+    }
+
+    .nav-btn {
+      background: none;
+      border-radius: 0;
+      padding: 12px 4px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .nav-btn.active {
+      color: #38bdf8;
+      background: rgba(14, 165, 233, 0.1);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      width: 100%;
+      max-width: 460px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .checklist-box {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 8px;
+      display: grid;
+      gap: 8px;
+    }
+    .check-item {
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .check-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .check-label {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .check-meta {
+      font-size: 0.73rem;
+      color: #7dd3fc;
+      font-weight: 600;
+    }
+    .foto-card-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #0b1220;
+    }
+    .foto-card-item img {
+      width: 100%;
+      height: 76px;
+      object-fit: cover;
+      display: block;
+    }
+    .foto-stamp-caption {
+      font-size: 0.66rem;
+      color: #cbd5e1;
+      padding: 3px 5px;
+      background: rgba(11, 18, 32, 0.9);
+      line-height: 1.25;
+    }
+    .queja-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid #f59e0b;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .queja-card.tipo-limpieza { border-left-color: #f97316; }
+    .queja-card.tipo-dano { border-left-color: #ef4444; }
+    .queja-card.tipo-estado { border-left-color: #38bdf8; }
+
+    .filtro-quejas-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      margin-bottom: 10px;
+    }
+    .filtro-queja-btn {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+    .filtro-queja-btn.active {
+      background: rgba(14, 165, 233, 0.22);
+      border-color: #38bdf8;
+      color: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="brand-title">Faro Santander — Limpieza y Mantenimiento</h1>
+    <div class="brand-sub">Estación G500 · 6 cajeros · Limpieza Mié/Dom y Pase de Lista diario</div>
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:8px;">
+      <span id="syncStatus" class="sync-pill" style="margin-top:0;">Nube y respaldo local activos</span>
+      <span id="badgeEncargadaActiva" style="display:none; background:rgba(22,163,74,0.22); border:1px solid #4ade80; color:#dcfce7; font-size:0.74rem; font-weight:800; padding:4px 10px; border-radius:999px;">ENCARGADOS ACTIVOS (control exclusivo)</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- VISTA 1: TABLERO DE LIMPIEZA (MIÉRCOLES Y DOMINGOS) -->
+    <section id="view-tablero" class="section-view active">
+      <div class="summary-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong>Avance de la jornada (4 participan · 2 descansan)</strong>
+          <span id="resumenTexto" style="font-size:0.88rem; font-weight:700; color:#38bdf8;">0 / 4 listos</span>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat">
+            <strong id="countVerde" style="color:#4ade80;">0</strong>
+            <span>En verde</span>
+          </div>
+          <div class="stat">
+            <strong id="countRojo" style="color:#f87171;">0</strong>
+            <span>En rojo</span>
+          </div>
+          <div class="stat">
+            <strong id="countPendiente" style="color:#fbbf24;">0</strong>
+            <span>Pendientes</span>
+          </div>
+          <div class="stat">
+            <strong id="countDescanso" style="color:#cbd5e1;">2</strong>
+            <span>No les toca hoy</span>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="danger" onclick="marcarPendientesEnRojo()">Cerrar día / Marcar sin evidencia en rojo</button>
+          <button class="secondary" onclick="rotarSugerencia()">Rotar áreas y turnos</button>
+          <button class="ghost-toggle" onclick="nuevaJornada()">Reiniciar jornada</button>
+        </div>
+      </div>
+
+      <div id="gridFichas" class="grid-6"></div>
+    </section>
+
+    <!-- VISTA 2: PASE DE LISTA DIARIO (MAÑANA, TARDE Y NOCHE) -->
+    <section id="view-asistencia" class="section-view">
+      <div class="summary-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong>Pase de lista diario (quién trabajó)</strong>
+          <input type="date" id="fechaPaseLista" style="width:auto;" />
+        </div>
+
+        <div class="horario-tabs">
+          <button type="button" id="tab-Manana" class="horario-btn active" onclick="seleccionarHorario('Manana')">Mañana</button>
+          <button type="button" id="tab-Tarde" class="horario-btn" onclick="seleccionarHorario('Tarde')">Tarde</button>
+          <button type="button" id="tab-Noche" class="horario-btn" onclick="seleccionarHorario('Noche')">Noche</button>
+        </div>
+
+        <div class="stats-row-3">
+          <div class="stat">
+            <strong id="countHorarioManana" style="color:#4ade80;">0</strong>
+            <span>Trabajaron Mañana</span>
+          </div>
+          <div class="stat">
+            <strong id="countHorarioTarde" style="color:#38bdf8;">0</strong>
+            <span>Trabajaron Tarde</span>
+          </div>
+          <div class="stat">
+            <strong id="countHorarioNoche" style="color:#c084fc;">0</strong>
+            <span>Trabajaron Noche</span>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="danger" onclick="cerrarHorarioSinMarcar()">Cerrar horario (marcar falta sin registro)</button>
+          <button class="ghost-toggle" onclick="limpiarHorarioActual()">Limpiar horario actual</button>
+        </div>
+      </div>
+
+      <div id="gridPaseLista" class="grid-6"></div>
+    </section>
+
+    <!-- VISTA ENCARGADA: CONTROL EXCLUSIVO DE CALIFICACIÓN, COMENTARIOS Y ASISTENCIA -->
+    <section id="view-encargada" class="section-view">
+      <div class="summary-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong>Panel de los Encargados — Asistencia, Calificación y Comentarios</strong>
+          <span id="estadoEncargadaPanel" class="badge badge-descanso">SOLO LECTURA</span>
+        </div>
+        <p class="meta-small" style="margin-top:6px;">
+          Solo los encargados con su clave de acceso pueden publicar comentarios, calificar las fotos y administrar el control. Los demás compañeros solo pueden consultar lo publicado.
+        </p>
+        <div class="toolbar">
+          <button type="button" id="btnPanelAccesoEncargada" class="success" onclick="toggleModoEncargada()">Entrar como Encargados (PIN)</button>
+          <button type="button" id="btnPanelSalirEncargada" class="secondary" style="display:none;" onclick="cerrarSesionEncargada()">Cerrar sesión de Encargados</button>
+        </div>
+      </div>
+
+      <div class="summary-box">
+        <strong>Resumen de quiénes sí fueron y quiénes trabajaron</strong>
+        <div class="meta-small">Consulta por fecha y turno quiénes marcaron "Trabajó", quiénes tienen foto de entrada/salida y quiénes faltaron o descansaron.</div>
+        <div class="toolbar" style="margin-top:8px;">
+          <input type="date" id="fechaControlEncargada" style="width:auto;" />
+          <select id="turnoControlEncargada" style="width:auto;">
+            <option value="TODOS">Todos los horarios (Mañana / Tarde / Noche)</option>
+            <option value="Manana">Mañana</option>
+            <option value="Tarde">Tarde</option>
+            <option value="Noche">Noche</option>
+          </select>
+        </div>
+        <div id="resumenQuienesTrabajaron" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="summary-box">
+        <strong>Calificación y comentarios exclusivos de los Encargados (Fotos de Limpieza)</strong>
+        <div class="meta-small">Califica del 1 al 5 y escribe observaciones exclusivas en cada ficha con evidencia.</div>
+        <div id="listaCalificacionEncargada" style="margin-top:12px;"></div>
+      </div>
+    </section>
+
+    <!-- VISTA QUEJAS Y REPORTES DE FALLAS / FALTA DE LIMPIEZA -->
+    <section id="view-quejas" class="section-view">
+      <div class="summary-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong>Quejas y Reportes — Limpieza, Equipo Dañado o Estado de la Estación</strong>
+          <span class="badge badge-pendiente">CON CÁMARA Y HORA</span>
+        </div>
+        <p class="meta-small" style="margin-top:6px;">
+          Reporta a quien no haya hecho su limpieza, alguna cosa dañada o mal estado en la estación. Las fotos se toman directo desde la cámara con fecha y hora estampada.
+        </p>
+
+        <div class="campos" style="margin-top:10px;">
+          <label style="font-size:0.82rem; color:#cbd5e1;">
+            Tipo de reporte:
+            <select id="quejaTipo" style="margin-top:4px;">
+              <option value="limpieza">Falta de limpieza / No hizo su limpieza</option>
+              <option value="dano">Cosa dañada / Falla de equipo</option>
+              <option value="estado">Mal estado general de la estación</option>
+            </select>
+          </label>
+
+          <label style="font-size:0.82rem; color:#cbd5e1;">
+            Compañero involucrado (si aplica):
+            <select id="quejaPersona" style="margin-top:4px;">
+              <option value="No aplica / General">No aplica / General</option>
+              <option value="Ana">Ana</option>
+              <option value="Julio">Julio</option>
+              <option value="Alma">Alma</option>
+              <option value="Fátima">Fátima</option>
+              <option value="Xochitl">Xochitl</option>
+              <option value="Karla">Karla</option>
+            </select>
+          </label>
+
+          <label style="font-size:0.82rem; color:#cbd5e1;">
+            Área o lugar:
+            <input type="text" id="quejaArea" placeholder="Ej. Isla A, Bocatoma diésel, Cuarto eléctrico, Baños..." style="margin-top:4px;" />
+          </label>
+
+          <label style="font-size:0.82rem; color:#cbd5e1;">
+            Descripción del reporte / queja:
+            <textarea id="quejaDescripcion" rows="3" placeholder="Explica qué pasó, qué está dañado o quién no cumplió con su limpieza..." style="margin-top:4px;"></textarea>
+          </label>
+
+          <div class="ficha-actions">
+            <button type="button" class="secondary" onclick="tomarFotoQueja()">Tomar foto desde cámara (con fecha y hora)</button>
+            <button type="button" class="ghost-toggle" onclick="limpiarFotosQuejaTemp()">Quitar fotos</button>
+          </div>
+          <div id="contadorFotosQueja" class="status-note">Fotos de queja tomadas: 0 / 10</div>
+          <div id="previewFotosQueja" class="thumbs-grid"></div>
+
+          <div class="ficha-actions" style="margin-top:10px;">
+            <button type="button" class="danger" onclick="publicarQuejaReporte()">Publicar queja / reporte</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-box">
+        <strong>Historial de quejas y reportes registrados</strong>
+        <div class="filtro-quejas-bar">
+          <button type="button" id="filtro-queja-todas" class="filtro-queja-btn active" onclick="seleccionarFiltroQueja('todas')">Todas</button>
+          <button type="button" id="filtro-queja-limpieza" class="filtro-queja-btn" onclick="seleccionarFiltroQueja('limpieza')">Falta de limpieza</button>
+          <button type="button" id="filtro-queja-dano" class="filtro-queja-btn" onclick="seleccionarFiltroQueja('dano')">Cosa dañada / Falla</button>
+          <button type="button" id="filtro-queja-estado" class="filtro-queja-btn" onclick="seleccionarFiltroQueja('estado')">Mal estado</button>
+        </div>
+        <div id="listaQuejasReportes" style="margin-top:10px;"></div>
+      </div>
+    </section>
+
+    <!-- VISTA AYUDA: INSTRUCCIONES PASO A PASO Y ROL DE LIMPIEZA -->
+    <section id="view-ayuda" class="section-view">
+      <div class="summary-box">
+        <strong>Centro de Ayuda — Cómo usar la aplicación paso a paso</strong>
+        <p class="meta-small" style="margin-top:6px;">
+          Guía rápida para usar el pase de lista, subir fotos de limpieza y consultar las reglas del turno desde el teléfono.
+        </p>
+      </div>
+
+      <div class="rol-card">
+        <h3>1. Abrir o instalar la app en tu teléfono</h3>
+        <p style="margin:6px 0; color:#cbd5e1;">
+          • Abre el enlace que te compartieron en el navegador de tu teléfono.<br/>
+          • Para tenerla como ícono en tu pantalla: apachurra los <strong>tres puntitos</strong> del navegador y toca <strong>Agregar a pantalla principal</strong> o <strong>Instalar aplicación</strong>.
+        </p>
+      </div>
+
+      <div class="rol-card">
+        <h3>2. Pase de Lista diario (Mañana, Tarde y Noche)</h3>
+        <p style="margin:6px 0; color:#cbd5e1;">
+          • Abajo en la barra, apachurra <strong>Pase de Lista</strong>.<br/>
+          • Arriba elige la <strong>fecha</strong> y apachurra tu horario: <strong>Mañana</strong>, <strong>Tarde</strong> o <strong>Noche</strong>.<br/>
+          • Busca tu ficha y apachurra <strong>Trabajó</strong>: se abrirá la cámara para tu foto de <strong>Entrada</strong>.<br/>
+          • En la vista previa, si se ve clara y bien la hora, apachurra <strong>Aceptar foto</strong> (una vez aceptada ya no se puede corregir). Si salió borrosa o mal, apachurra <strong>Tomar otra</strong>.<br/>
+          • Al terminar tu turno, apachurra <strong>Salida (foto)</strong>, toma la foto de <strong>Salida</strong> y apachurra <strong>Aceptar foto</strong>.<br/>
+          • Si hoy descansaste, apachurra <strong>Descanso</strong>.
+        </p>
+      </div>
+
+      <div class="rol-card">
+        <h3>3. Limpieza y Mantenimiento (Miércoles y Domingos)</h3>
+        <p style="margin:6px 0; color:#cbd5e1;">
+          • Abajo en la barra, apachurra <strong>Limpieza (6)</strong>.<br/>
+          • Si hoy <strong>no</strong> te toca participar, apachurra <strong>Hoy no participa en la limpieza</strong> (quedará en gris y no contará en rojo).<br/>
+          • Si <strong>sí</strong> te toca: elige tu <strong>Turno Matutino</strong> o <strong>Turno Vespertino</strong> y tu <strong>Área</strong>, luego apachurra <strong>Subir evidencia (1-20)</strong>.<br/>
+          • Selecciona o toma de <strong>1 a 20 fotos</strong>, escribe un comentario si gustas y apachurra <strong>Guardar y poner en verde</strong>.<br/>
+          • Si no subes evidencia, queda pendiente y al cierre pasa a <strong>rojo</strong>.
+        </p>
+      </div>
+
+      <div class="rol-card">
+        <h3>4. Panel de Encargados y cierre automático</h3>
+        <p style="margin:6px 0; color:#cbd5e1;">
+          • En <strong>Encargados</strong> puedes consultar quiénes trabajaron y ver calificaciones/comentarios publicados. Los encargados entran con su PIN para calificar y comentar.<br/>
+          • A las <strong>00:00</strong> se aplica el cierre automático del día y al cambiar de día se prepara la nueva jornada.
+        </p>
+      </div>
+
+      <div class="rol-card">
+        <h3>5. Regla General y Rol de Áreas</h3>
+        <p style="margin:6px 0; color:#cbd5e1;">
+          • <strong>Regla general:</strong> cada turno debe entregar su área limpia y ordenada al terminar labores (islas, bombas, pasillos, jardineras y áreas perimetrales).<br/>
+          • <strong>Turno Matutino:</strong> Isla A, Bocatomas rojas, Cuarto de basura, Isla B, Bocatomas verdes.<br/>
+          • <strong>Turno Vespertino:</strong> Bocatomas de diésel, Cuarto eléctrico, Pozos de registro, Cuarto de la compresora.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL REVISIÓN INMEDIATA DE FOTO (ENTRADA / SALIDA) -->
+  <div id="modalRevisionFoto" class="modal-backdrop">
+    <div class="modal-box">
+      <h3 id="revisionTitulo" style="margin-top:0;">Revisar foto tomada</h3>
+      <p id="revisionSubtitulo" style="font-size:0.84rem; color:#cbd5e1; margin-top:4px;">
+        Si se ve clara y bien la hora, pulsa <strong>Aceptar foto</strong> (una vez aceptada ya no se puede corregir). Si se ve borrosa o mal, pulsa <strong>Tomar otra</strong>.
+      </p>
+      <div style="margin-top:10px;">
+        <img id="revisionImg" src="" alt="Vista previa de foto" style="width:100%; max-height:260px; object-fit:contain; border-radius:12px; border:1px solid var(--border); background:#0b1220;" />
+      </div>
+      <div class="ficha-actions" style="margin-top:14px;">
+        <button type="button" class="success" id="btnAceptarFotoRevision">Aceptar foto</button>
+        <button type="button" class="danger" id="btnTomarOtraFotoRevision">Tomar otra</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ACCESO EXCLUSIVO ENCARGADA -->
+  <div id="modalPinEncargada" class="modal-backdrop">
+    <div class="modal-box">
+      <h3 style="margin-top:0;">Acceso exclusivo — Encargados</h3>
+      <p style="font-size:0.84rem; color:#cbd5e1; margin-top:4px;">
+        Ingresa tu clave (PIN) de encargados para poder publicar comentarios, calificar fotos y revisar el control. (PIN de encargados: <strong>1985</strong>).
+      </p>
+      <div class="campos">
+        <label style="font-size:0.82rem; color:#cbd5e1;">
+          PIN de Encargados:
+          <input type="password" id="inputPinEncargada" inputmode="numeric" maxlength="10" placeholder="Escribe tu PIN" style="margin-top:6px;" />
+        </label>
+        <div id="errorPinEncargada" class="meta-small" style="color:#f87171;"></div>
+      </div>
+      <div class="ficha-actions" style="margin-top:14px;">
+        <button type="button" class="success" onclick="validarPinEncargada()">Desbloquear control</button>
+        <button type="button" class="secondary" onclick="cerrarModalPinEncargada()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SUBIR EVIDENCIA -->
+  <div id="modalEvidencia" class="modal-backdrop">
+    <div class="modal-box">
+      <h3 id="modalTitulo" style="margin-top:0;">Subir evidencia</h3>
+      <div class="campos">
+        <label style="font-size:0.82rem; color:#cbd5e1;">
+          Turno e Isla:
+          <select id="selectTurnoIslaModal" style="margin-top:4px;" onchange="cambiarTurnoIslaModal()">
+            <option value="matutino_a">Turno matutino isla A</option>
+            <option value="matutino_b">Turno matutino isla B</option>
+            <option value="vespertino_a">Turno vespertino isla A</option>
+            <option value="vespertino_b">Turno vespertino isla B</option>
+          </select>
+        </label>
+
+        <div class="meta-small" style="color:#bae6fd;">
+          Toma las fotos directamente desde la cámara de la aplicación. Cada foto llevará impresa su <strong>fecha y hora</strong> automáticamente.
+        </div>
+
+        <div id="checklistPuntosModal" class="checklist-box"></div>
+
+        <div id="contadorFotosModal" class="status-note">Fotos tomadas: 0</div>
+        <div id="avisoLimiteModal" class="meta-small" style="color:#fbbf24;"></div>
+        <div id="previewGridModal" class="thumbs-grid"></div>
+
+        <div class="ficha-actions" style="margin-top:6px;">
+          <button type="button" class="secondary" style="padding:6px 10px; font-size:0.78rem;" onclick="limpiarFotosModal()">Quitar fotos tomadas</button>
+        </div>
+        <label style="font-size:0.82rem; color:#cbd5e1;">
+          Comentario rápido (opcional):
+          <input type="text" id="inputNota" placeholder="Ej. Área limpia y sin residuos" style="margin-top:6px;" />
+        </label>
+      </div>
+      <div class="ficha-actions" style="margin-top:14px;">
+        <button class="success" onclick="guardarEvidencia()">Guardar y poner en verde</button>
+        <button class="secondary" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button id="nav-tablero" class="nav-btn active" onclick="cambiarVista('tablero')">Limpieza (6)</button>
+    <button id="nav-asistencia" class="nav-btn" onclick="cambiarVista('asistencia')">Pase de Lista</button>
+    <button id="nav-quejas" class="nav-btn" onclick="cambiarVista('quejas')">Quejas / Fallas</button>
+    <button id="nav-ayuda" class="nav-btn" onclick="cambiarVista('ayuda')">Ayuda</button>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const CHECKLIST_POR_TURNO_ISLA = {
+      matutino_a: {
+        titulo: "Turno matutino isla A",
+        items: [
+          { id: "boc_1", nombre: "Bocatoma 1", maxFotos: 3 },
+          { id: "boc_2", nombre: "Bocatoma 2", maxFotos: 3 },
+          { id: "boc_3", nombre: "Bocatoma 3", maxFotos: 3 },
+          { id: "boc_desc", nombre: "Bocatoma descarga", maxFotos: 3 },
+          { id: "moto_ab", nombre: "Motobomba abierta", maxFotos: 3 },
+          { id: "moto_cer", nombre: "Moto bomba cerrada", maxFotos: 3 },
+          { id: "pozo_1", nombre: "Pozo 1", maxFotos: 3 },
+          { id: "pozo_2", nombre: "Pozo 2", maxFotos: 3 },
+          { id: "pozo_3", nombre: "Pozo 3", maxFotos: 3 },
+          { id: "cuarto_basura", nombre: "Cuarto de basura", maxFotos: 5 },
+          { id: "aceitera_disp", nombre: "Aceitera , dispensador, y más", maxFotos: 10 }
+        ]
+      },
+      matutino_b: {
+        titulo: "Turno matutino isla B",
+        items: [
+          { id: "boc_1", nombre: "Bocatoma 1", maxFotos: 3 },
+          { id: "boc_2", nombre: "Bocatoma 2", maxFotos: 3 },
+          { id: "boc_3", nombre: "Bocatoma 3", maxFotos: 3 },
+          { id: "boc_4", nombre: "Bocatoma 4", maxFotos: 3 },
+          { id: "boc_desc", nombre: "Bocatoma descarga", maxFotos: 3 },
+          { id: "moto_ab", nombre: "Motobomba abierta", maxFotos: 3 },
+          { id: "moto_cer", nombre: "Moto bomba cerrada", maxFotos: 3 },
+          { id: "pozo_1", nombre: "Pozo 1", maxFotos: 3 },
+          { id: "pozo_2", nombre: "Pozo 2", maxFotos: 3 },
+          { id: "pozo_3", nombre: "Pozo 3", maxFotos: 3 },
+          { id: "aceitera_disp", nombre: "Aceitera , dispensador, y más", maxFotos: 10 }
+        ]
+      },
+      vespertino_a: {
+        titulo: "Turno vespertino isla A",
+        items: [
+          { id: "boc_1", nombre: "Bocatoma 1", maxFotos: 3 },
+          { id: "boc_2", nombre: "Bocatoma 2", maxFotos: 3 },
+          { id: "boc_3", nombre: "Bocatoma 3", maxFotos: 3 },
+          { id: "boc_4", nombre: "Bocatoma 4", maxFotos: 3 },
+          { id: "boc_desc", nombre: "Bocatoma descarga", maxFotos: 3 },
+          { id: "moto_ab", nombre: "Motobomba abierta", maxFotos: 3 },
+          { id: "moto_cer", nombre: "Moto bomba cerrada", maxFotos: 3 },
+          { id: "cuarto_elec", nombre: "Cuarto eléctrico", maxFotos: 5 },
+          { id: "aceitera_disp", nombre: "Aceitera , dispensador, y más", maxFotos: 10 }
+        ]
+      },
+      vespertino_b: {
+        titulo: "Turno vespertino isla B",
+        items: [
+          { id: "pozo_1", nombre: "Pozo 1", maxFotos: 3 },
+          { id: "pozo_2", nombre: "Pozo 2", maxFotos: 3 },
+          { id: "pozo_3", nombre: "Pozo 3", maxFotos: 3 },
+          { id: "pozo_4", nombre: "Pozo 4", maxFotos: 3 },
+          { id: "pozo_5", nombre: "Pozo 5", maxFotos: 3 },
+          { id: "pozo_6", nombre: "Pozo 6", maxFotos: 3 },
+          { id: "cuarto_comp", nombre: "Cuarto compresora", maxFotos: 5 },
+          { id: "aceitera_disp", nombre: "Aceitera , dispensador, y más", maxFotos: 10 }
+        ]
+      }
+    };
+
+    const inputCamaraEvidencia = document.createElement("input");
+    inputCamaraEvidencia.type = "file";
+    inputCamaraEvidencia.accept = "image/*";
+    inputCamaraEvidencia.capture = "environment";
+    inputCamaraEvidencia.style.display = "none";
+    document.body.appendChild(inputCamaraEvidencia);
+
+    const inputCamaraQueja = document.createElement("input");
+    inputCamaraQueja.type = "file";
+    inputCamaraQueja.accept = "image/*";
+    inputCamaraQueja.capture = "environment";
+    inputCamaraQueja.style.display = "none";
+    document.body.appendChild(inputCamaraQueja);
+
+    let puntoCapturaEvidencia = null;
+    let fotosQuejaTemporales = [];
+
+    function obtenerFechaHoraEstampada() {
+      return new Date().toLocaleString("es-MX", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+    }
+
+    function capturarYEstamparFotoAsync(file, etiquetaArriba, fechaHoraStr, maxWidth = 900, quality = 0.72) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+          const img = new Image();
+          img.onload = function () {
+            const scale = Math.min(1, maxWidth / img.width);
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const barHeight = Math.max(44, Math.round(canvas.height * 0.085));
+            ctx.fillStyle = "rgba(11, 18, 32, 0.78)";
+            ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
+
+            const fontSize = Math.max(13, Math.round(barHeight * 0.34));
+            ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
+            ctx.fillStyle = "#f8fafc";
+            ctx.textBaseline = "middle";
+
+            const textoLinea1 = `${fechaHoraStr}`;
+            const textoLinea2 = etiquetaArriba ? `${etiquetaArriba}` : "Faro Santander";
+
+            if (barHeight >= 56) {
+              ctx.fillText(textoLinea2, 12, canvas.height - barHeight * 0.68);
+              ctx.fillStyle = "#7dd3fc";
+              ctx.fillText(textoLinea1, 12, canvas.height - barHeight * 0.28);
+            } else {
+              ctx.fillText(`${textoLinea2} · ${textoLinea1}`, 10, canvas.height - barHeight * 0.5);
+            }
+
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const MAX_FOTOS = 20;
+    const HORARIOS = ["Manana", "Tarde", "Noche"];
+    const ETIQUETAS_HORARIO = {
+      Manana: "Mañana",
+      Tarde: "Tarde",
+      Noche: "Noche"
+    };
+
+    const AREAS = [
+      "Isla A y bocatomas rojas",
+      "Cuarto de basura",
+      "Isla B y bocatomas verdes",
+      "Bocatomas de diésel",
+      "Cuarto eléctrico",
+      "Pozos de registro y cuarto de la compresora"
+    ];
+
+    const INTEGRANTES_INICIALES = ["Ana", "Julio", "Alma", "Fátima", "Xochitl", "Karla"];
+    const STORAGE_KEY = "faro_santander_limpieza_v28";
+    const ULTIMA_FECHA_KEY = "faro_santander_ultima_fecha_v28";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA5lNh2hQkKcIXRzCXSKLhYJxf1vpmYH1w",
+      authDomain: "farosantader.firebaseapp.com",
+      databaseURL: "https://farosantader-default-rtdb.firebaseio.com",
+      projectId: "farosantader",
+      storageBucket: "farosantader.firebasestorage.app",
+      messagingSenderId: "221387101764",
+      appId: "1:221387101764:web:2ae6a090085333a3fd0e11",
+      measurementId: "G-6P7XT3GMHR"
+    };
+
+    const firebaseConfigurado =
+      Boolean(firebaseConfig.apiKey) &&
+      !firebaseConfig.apiKey.startsWith("TU_") &&
+      Boolean(firebaseConfig.databaseURL) &&
+      !firebaseConfig.databaseURL.includes("TU_PROYECTO");
+
+    let rutaNube = null;
+    const syncStatusEl = document.getElementById("syncStatus");
+
+    if (firebaseConfigurado) {
+      try {
+        const app = initializeApp(firebaseConfig);
+        const dbCloud = getDatabase(app);
+        rutaNube = ref(dbCloud, "faroSantander/limpiezaJornada");
+        syncStatusEl.textContent = "Nube y respaldo local activos";
+      } catch (err) {
+        console.error("Error iniciando Firebase:", err);
+        syncStatusEl.textContent = "Respaldo guardado en el teléfono";
+      }
+    }
+
+    function obtenerFechaHoyISO() {
+      const now = new Date();
+      const offsetMs = now.getTimezoneOffset() * 60000;
+      return new Date(now.getTime() - offsetMs).toISOString().slice(0, 10);
+    }
+
+    function crearDiaPaseListaVacio() {
+      const dia = {};
+      HORARIOS.forEach((h) => {
+        dia[h] = {};
+        INTEGRANTES_INICIALES.forEach((nombre) => {
+          dia[h][nombre] = {
+            estado: "sin_marcar",
+            nota: "",
+            actualizado: "",
+            fotoBiometrico: "",
+            horaBiometrico: "",
+            entradaTomada: false,
+            entradaAceptada: false,
+            fotoSalida: "",
+            horaSalida: "",
+            salidaTomada: false,
+            salidaAceptada: false,
+            cerradoAuto: false,
+            obsFoto: ""
+          };
+        });
+      });
+      return dia;
+    }
+
+    function normalizarDatos(rawObj) {
+      const base = estadoInicial();
+      if (!rawObj || typeof rawObj !== "object") return base;
+
+      const extraerFotos = (val, fotoUnica) => {
+        if (Array.isArray(val)) return val.filter(Boolean).slice(0, MAX_FOTOS);
+        if (val && typeof val === "object") return Object.values(val).filter(Boolean).slice(0, MAX_FOTOS);
+        if (fotoUnica) return [fotoUnica];
+        return [];
+      };
+
+      const origenFichas = Array.isArray(rawObj.fichas)
+        ? rawObj.fichas
+        : (rawObj.fichas && typeof rawObj.fichas === "object" ? Object.values(rawObj.fichas) : []);
+
+      const fichasNormalizadas = origenFichas.length === 6
+        ? origenFichas.map((f, idx) => ({
+            id: typeof f.id === "number" ? f.id : idx,
+            nombre: f.nombre || INTEGRANTES_INICIALES[idx],
+            noParticipa: Boolean(f.noParticipa),
+            estado: f.estado || (f.noParticipa ? "descanso" : "pendiente"),
+            turno: f.turno || (idx < 3 ? "Matutino" : "Vespertino"),
+            area: f.area || AREAS[idx % AREAS.length],
+            nota: f.nota || "",
+            fotos: extraerFotos(f.fotos, f.foto),
+            horaSubida: f.horaSubida || "",
+            calificacionEncargada: typeof f.calificacionEncargada === "number" ? f.calificacionEncargada : (Number(f.calificacionEncargada) || 0),
+            comentarioEncargada: f.comentarioEncargada || "",
+            fechaCalificacionEncargada: f.fechaCalificacionEncargada || ""
+          }))
+        : base.fichas;
+
+      const origenEvidencias = Array.isArray(rawObj.evidencias)
+        ? rawObj.evidencias
+        : (rawObj.evidencias && typeof rawObj.evidencias === "object" ? Object.values(rawObj.evidencias) : []);
+
+      const evidenciasNormalizadas = origenEvidencias.map(ev => ({
+        id: ev.id || Date.now(),
+        nombre: ev.nombre || "",
+        turno: ev.turno || "",
+        area: ev.area || "",
+        nota: ev.nota || "",
+        hora: ev.hora || "",
+        fotos: extraerFotos(ev.fotos, ev.foto)
+      }));
+
+      const paseListaNormalizado = {};
+      if (rawObj.paseLista && typeof rawObj.paseLista === "object") {
+        Object.keys(rawObj.paseLista).forEach((fechaKey) => {
+          const limpio = crearDiaPaseListaVacio();
+          const origenFecha = rawObj.paseLista[fechaKey] || {};
+          HORARIOS.forEach((h) => {
+            const origenHorario = origenFecha[h] || {};
+            INTEGRANTES_INICIALES.forEach((nombre) => {
+              const item = origenHorario[nombre];
+              if (item && typeof item === "object") {
+                limpio[h][nombre] = {
+                  estado: item.estado || "sin_marcar",
+                  nota: item.nota || "",
+                  actualizado: item.actualizado || "",
+                  fotoBiometrico: item.fotoBiometrico || "",
+                  horaBiometrico: item.horaBiometrico || "",
+                  entradaTomada: Boolean(item.entradaTomada || item.fotoBiometrico),
+                  entradaAceptada: Boolean(item.entradaAceptada),
+                  fotoSalida: item.fotoSalida || "",
+                  horaSalida: item.horaSalida || "",
+                  salidaTomada: Boolean(item.salidaTomada || item.fotoSalida),
+                  salidaAceptada: Boolean(item.salidaAceptada),
+                  cerradoAuto: Boolean(item.cerradoAuto),
+                  obsFoto: item.obsFoto || ""
+                };
+              }
+            });
+          });
+          paseListaNormalizado[fechaKey] = limpio;
+        });
+      }
+
+      const origenQuejas = Array.isArray(rawObj.quejas)
+        ? rawObj.quejas
+        : (rawObj.quejas && typeof rawObj.quejas === "object" ? Object.values(rawObj.quejas) : []);
+
+      const quejasNormalizadas = origenQuejas.map(q => ({
+        id: q.id || Date.now(),
+        tipo: q.tipo || "limpieza",
+        persona: q.persona || "No aplica / General",
+        area: q.area || "",
+        descripcion: q.descripcion || "",
+        fechaHora: q.fechaHora || "",
+        fotos: extraerFotos(q.fotos, q.foto)
+      }));
+
+      return {
+        fichas: fichasNormalizadas,
+        evidencias: evidenciasNormalizadas,
+        quejas: quejasNormalizadas,
+        paseLista: paseListaNormalizado
+      };
+    }
+
+    function estadoInicial() {
+      const hoyISO = obtenerFechaHoyISO();
+      return {
+        fichas: INTEGRANTES_INICIALES.map((nombre, idx) => ({
+          id: idx,
+          nombre,
+          noParticipa: idx >= 4,
+          estado: idx >= 4 ? "descanso" : "pendiente",
+          turno: idx < 3 ? "Matutino" : "Vespertino",
+          turnoIslaKey: idx < 3 ? "matutino_a" : "vespertino_a",
+          area: AREAS[idx % AREAS.length],
+          nota: "",
+          fotos: [],
+          fotosDetalle: [],
+          horaSubida: "",
+          calificacionEncargada: 0,
+          comentarioEncargada: "",
+          fechaCalificacionEncargada: ""
+        })),
+        evidencias: [],
+        quejas: [],
+        paseLista: {
+          [hoyISO]: crearDiaPaseListaVacio()
+        }
+      };
+    }
+
+    function cargarDBLocal() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return estadoInicial();
+        return normalizarDatos(JSON.parse(raw));
+      } catch {
+        return estadoInicial();
+      }
+    }
+
+    let db = cargarDBLocal();
+    let fechaSeleccionada = obtenerFechaHoyISO();
+    let horarioSeleccionado = "Manana";
+    let fichaActivaModal = null;
+    let fotosTemporalesModal = [];
+
+    const inputFechaPase = document.getElementById("fechaPaseLista");
+    inputFechaPase.value = fechaSeleccionada;
+
+    function asegurarRegistroFecha(fechaISO) {
+      if (!db.paseLista || typeof db.paseLista !== "object") {
+        db.paseLista = {};
+      }
+      if (!db.paseLista[fechaISO]) {
+        db.paseLista[fechaISO] = crearDiaPaseListaVacio();
+      }
+      return db.paseLista[fechaISO];
+    }
+
+    function sanitizarParaGuardar(obj) {
+      return JSON.parse(JSON.stringify(obj, (_k, v) => (v === undefined ? null : v)));
+    }
+
+    function guardarYRefrescar(esCambioLocal = true) {
+      const limpio = sanitizarParaGuardar(db);
+      db = normalizarDatos(limpio);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+      } catch (err) {
+        console.warn("LocalStorage lleno, intentando limpiar evidencias antiguas...", err);
+        try {
+          db.evidencias = (db.evidencias || []).slice(0, 5);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        } catch (err2) {
+          alert("El espacio del teléfono está lleno por tantas fotos. Borra fotos anteriores o sube menos fotos.");
+        }
+      }
+
+      if (esCambioLocal && rutaNube) {
+        set(rutaNube, sanitizarParaGuardar(db)).catch((err) => {
+          console.error("Error sincronizando en nube:", err);
+          alert("No se pudo subir a la nube (posiblemente las fotos pesan mucho). Se guardó en este teléfono.");
+        });
+      }
+    }
+
+    if (rutaNube) {
+      onValue(rutaNube, (snapshot) => {
+        if (snapshot.exists()) {
+          db = normalizarDatos(snapshot.val());
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+          } catch {}
+          renderTablero(false);
+          renderPaseLista();
+          renderPanelEncargada();
+          renderQuejas();
+        }
+      });
+    }
+
+    function renderTablero(sincronizar = true) {
+      const grid = document.getElementById("gridFichas");
+      grid.innerHTML = "";
+
+      let verdes = 0, rojos = 0, pendientes = 0, descansos = 0, activos = 0;
+      const esFinDeDia = new Date().getHours() >= 20;
+
+      db.fichas.forEach((f) => {
+        const tieneEvidencia = Array.isArray(f.fotos) && f.fotos.length > 0;
+        if (f.noParticipa) {
+          f.estado = "descanso";
+          descansos++;
+        } else {
+          activos++;
+          if (tieneEvidencia || f.estado === "verde") {
+            f.estado = "verde";
+            verdes++;
+          } else if (f.estado === "rojo" || esFinDeDia) {
+            f.estado = "rojo";
+            rojos++;
+          } else {
+            f.estado = "pendiente";
+            pendientes++;
+          }
+        }
+
+        const badgeMap = {
+          verde: { cls: "badge-verde", label: "CUMPLIÓ · VERDE" },
+          rojo: { cls: "badge-rojo", label: "SIN EVIDENCIA · ROJO" },
+          pendiente: { cls: "badge-pendiente", label: "PENDIENTE" },
+          descanso: { cls: "badge-descanso", label: "HOY NO LE TOCA" }
+        };
+
+        const b = badgeMap[f.estado];
+        const totalFotos = Array.isArray(f.fotos) ? f.fotos.length : 0;
+
+        const card = document.createElement("div");
+        card.className = `ficha estado-${f.estado}`;
+
+        card.innerHTML = `
+          <div class="ficha-top">
+            <button class="nombre-btn" data-action="toggle" data-id="${f.id}" title="Toca para alternar si hoy no participa">
+              ${f.nombre}
+            </button>
+            <span class="badge ${b.cls}">${b.label}</span>
+          </div>
+
+          <div class="ficha-actions" style="margin-top:8px;">
+            <button class="ghost-toggle" style="padding:6px 10px; font-size:0.78rem;" data-action="toggle" data-id="${f.id}">
+              ${f.noParticipa ? "Marcar que SÍ participa hoy" : "Hoy no participa en la limpieza"}
+            </button>
+          </div>
+
+          ${
+            f.noParticipa
+              ? `<div class="no-participa-msg">Hoy no le toca / Hoy no participa en la limpieza. No cuenta en rojo.</div>`
+              : `
+                <div class="campos">
+                  <select data-action="turno" data-id="${f.id}">
+                    <option value="Matutino" ${f.turno === "Matutino" ? "selected" : ""}>Turno Matutino</option>
+                    <option value="Vespertino" ${f.turno === "Vespertino" ? "selected" : ""}>Turno Vespertino</option>
+                  </select>
+
+                  <select data-action="area" data-id="${f.id}">
+                    ${AREAS.map(a => `<option value="${a}" ${f.area === a ? "selected" : ""}>${a}</option>`).join("")}
+                  </select>
+                </div>
+
+                ${
+                  totalFotos > 0
+                    ? `
+                      <div class="status-note">Fotos subidas: ${totalFotos} / ${MAX_FOTOS}</div>
+                      <div class="thumbs-grid">
+                        ${f.fotos.slice(0, 4).map(src => `<img src="${src}" alt="Evidencia de ${f.nombre}" />`).join("")}
+                      </div>
+                    `
+                    : ""
+                }
+                ${f.horaSubida ? `<div class="meta-small">Última subida: ${f.horaSubida}${f.nota ? " · " + f.nota : ""}</div>` : ""}
+                ${
+                  (f.calificacionEncargada || f.comentarioEncargada)
+                    ? `<div class="status-note" style="color:#fde047; margin-top:8px; padding:8px; border-radius:8px; background:rgba(15,23,42,0.65); border:1px solid #475569;">
+                        Encargados: ${f.calificacionEncargada ? "★".repeat(f.calificacionEncargada) + "☆".repeat(5 - f.calificacionEncargada) + ` (${f.calificacionEncargada}/5)` : "Sin calificación"}
+                        ${f.comentarioEncargada ? `<div style="color:#f8fafc; font-weight:500; margin-top:4px;">"${f.comentarioEncargada}"</div>` : ""}
+                        ${f.fechaCalificacionEncargada ? `<div class="meta-small">Calificado: ${f.fechaCalificacionEncargada}</div>` : ""}
+                      </div>`
+                    : ""
+                }
+
+                <div class="ficha-actions">
+                  <button class="success" data-action="subir" data-id="${f.id}">${totalFotos > 0 ? "Editar / Agregar fotos" : "Subir evidencia (1-20)"}</button>
+                </div>
+              `
+          }
+        `;
+
+        grid.appendChild(card);
+      });
+
+      document.getElementById("countVerde").textContent = verdes;
+      document.getElementById("countRojo").textContent = rojos;
+      document.getElementById("countPendiente").textContent = pendientes;
+      document.getElementById("countDescanso").textContent = descansos;
+      document.getElementById("resumenTexto").textContent =
+        `${verdes} / ${activos} listos · ${descansos} descansan hoy`;
+
+      if (sincronizar) {
+        guardarYRefrescar(true);
+      }
+    }
+
+    function renderPaseLista() {
+      const registroDia = asegurarRegistroFecha(fechaSeleccionada);
+
+      HORARIOS.forEach((h) => {
+        const btn = document.getElementById(`tab-${h}`);
+        if (btn) btn.classList.toggle("active", h === horarioSeleccionado);
+        const totalTrabajaron = INTEGRANTES_INICIALES.filter(
+          (nombre) => registroDia[h][nombre]?.estado === "trabajo"
+        ).length;
+        const counterEl = document.getElementById(`countHorario${h}`);
+        if (counterEl) counterEl.textContent = totalTrabajaron;
+      });
+
+      const grid = document.getElementById("gridPaseLista");
+      grid.innerHTML = "";
+
+      const datosHorario = registroDia[horarioSeleccionado];
+
+      INTEGRANTES_INICIALES.forEach((nombre) => {
+        const item = datosHorario[nombre] || { estado: "sin_marcar", nota: "", actualizado: "" };
+        const estadoClassMap = {
+          trabajo: "estado-verde",
+          falta: "estado-rojo",
+          descanso: "estado-descanso",
+          sin_marcar: "estado-pendiente"
+        };
+        const badgeMap = {
+          trabajo: { cls: "badge-verde", label: "TRABAJÓ" },
+          falta: { cls: "badge-rojo", label: "FALTA" },
+          descanso: { cls: "badge-descanso", label: "DESCANSO" },
+          sin_marcar: { cls: "badge-pendiente", label: "SIN MARCAR" }
+        };
+
+        const b = badgeMap[item.estado] || badgeMap.sin_marcar;
+        const card = document.createElement("div");
+        card.className = `ficha ${estadoClassMap[item.estado] || "estado-pendiente"}`;
+
+        card.innerHTML = `
+          <div class="ficha-top">
+            <strong style="font-size:1.08rem;">${nombre}</strong>
+            <span class="badge ${b.cls}">${b.label}</span>
+          </div>
+          <div class="meta-small">Fecha: ${fechaSeleccionada} · Horario: ${ETIQUETAS_HORARIO[horarioSeleccionado]}</div>
+
+          <div class="campos">
+            <input
+              type="text"
+              data-pase-nota="${nombre}"
+              value="${(item.nota || "").replace(/"/g, "&quot;")}"
+              placeholder="Nota opcional (ej. cubrió turno, apoyo)"
+            />
+          </div>
+
+          ${
+            item.fotoBiometrico
+              ? `
+                <div class="status-note">Entrada ${item.entradaAceptada ? "(ACEPTADA · bloqueada)" : "(pendiente aceptar)"}: ${item.horaBiometrico || "registrada"}</div>
+                <div style="margin-top:6px;">
+                  <img src="${item.fotoBiometrico}" alt="Foto biométrico entrada de ${nombre}" style="width:100%; max-height:130px; object-fit:cover; border-radius:9px; border:1px solid var(--border);" />
+                </div>
+              `
+              : `<div class="meta-small" style="color:#fbbf24;">Sin foto de entrada aún</div>`
+          }
+          ${
+            item.fotoSalida
+              ? `
+                <div class="status-note" style="color:#4ade80;">Salida ${item.salidaAceptada ? "(ACEPTADA · bloqueada)" : "(pendiente aceptar)"}: ${item.horaSalida || "registrada"}</div>
+                <div style="margin-top:6px;">
+                  <img src="${item.fotoSalida}" alt="Foto biométrico salida de ${nombre}" style="width:100%; max-height:130px; object-fit:cover; border-radius:9px; border:1px solid var(--border);" />
+                </div>
+              `
+              : `<div class="meta-small" style="color:#94a3b8;">Sin foto de salida aún</div>`
+          }
+
+          ${item.actualizado ? `<div class="meta-small">Actualizado: ${item.actualizado}</div>` : ""}
+
+          <div class="ficha-actions">
+            ${
+              item.entradaAceptada
+                ? `<span class="badge badge-verde">ENTRADA ACEPTADA</span>`
+                : `<button class="success" data-pase-foto="${nombre}">Entrada</button>`
+            }
+            ${
+              item.salidaAceptada
+                ? `<span class="badge badge-verde">SALIDA ACEPTADA</span>`
+                : `<button class="danger" data-pase-salida="${nombre}">Salida</button>`
+            }
+            <button class="secondary" data-pase-nombre="${nombre}" data-pase-estado="descanso">Descanso</button>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    window.seleccionarHorario = function (horario) {
+      if (!HORARIOS.includes(horario)) return;
+      horarioSeleccionado = horario;
+      renderPaseLista();
+    };
+
+    inputFechaPase.addEventListener("change", (e) => {
+      fechaSeleccionada = e.target.value || obtenerFechaHoyISO();
+      asegurarRegistroFecha(fechaSeleccionada);
+      renderPaseLista();
+    });
+
+    const inputFotoBiometrico = document.createElement("input");
+    inputFotoBiometrico.type = "file";
+    inputFotoBiometrico.accept = "image/*";
+    inputFotoBiometrico.capture = "environment";
+    inputFotoBiometrico.style.display = "none";
+    document.body.appendChild(inputFotoBiometrico);
+
+    const inputFotoSalida = document.createElement("input");
+    inputFotoSalida.type = "file";
+    inputFotoSalida.accept = "image/*";
+    inputFotoSalida.capture = "environment";
+    inputFotoSalida.style.display = "none";
+    document.body.appendChild(inputFotoSalida);
+
+    let contextoCaptura = null;
+    let fotoEnRevision = null;
+
+    const modalRevisionEl = document.getElementById("modalRevisionFoto");
+    const revisionTituloEl = document.getElementById("revisionTitulo");
+    const revisionSubtituloEl = document.getElementById("revisionSubtitulo");
+    const revisionImgEl = document.getElementById("revisionImg");
+    const btnAceptarFotoRevision = document.getElementById("btnAceptarFotoRevision");
+    const btnTomarOtraFotoRevision = document.getElementById("btnTomarOtraFotoRevision");
+
+    function abrirRevisionFoto(datos) {
+      fotoEnRevision = datos;
+      const etiqueta = datos.tipo === "entrada" ? "ENTRADA" : "SALIDA";
+      revisionTituloEl.textContent = `Revisar foto de ${etiqueta} — ${datos.nombre}`;
+      revisionSubtituloEl.innerHTML =
+        "Si se ve clara y bien la hora, pulsa <strong>Aceptar foto</strong> (una vez aceptada ya no se puede corregir). Si se ve borrosa o no se ve bien, pulsa <strong>Tomar otra</strong>.";
+      revisionImgEl.src = datos.imgData;
+      modalRevisionEl.classList.add("open");
+    }
+
+    function lanzarCamara(ctx) {
+      const registroDia = asegurarRegistroFecha(ctx.fecha);
+      const actual = registroDia[ctx.horario][ctx.nombre] || {};
+      if (ctx.tipo === "entrada" && actual.entradaAceptada) {
+        alert(`La foto de ENTRADA de ${ctx.nombre} ya fue aceptada y no se puede corregir.`);
+        return;
+      }
+      if (ctx.tipo === "salida" && actual.salidaAceptada) {
+        alert(`La foto de SALIDA de ${ctx.nombre} ya fue aceptada y no se puede corregir.`);
+        return;
+      }
+      contextoCaptura = ctx;
+      if (ctx.tipo === "entrada") {
+        inputFotoBiometrico.value = "";
+        inputFotoBiometrico.click();
+      } else {
+        inputFotoSalida.value = "";
+        inputFotoSalida.click();
+      }
+    }
+
+    btnAceptarFotoRevision.addEventListener("click", () => {
+      if (!fotoEnRevision) return;
+      const { tipo, nombre, horario, fecha, nota, marcarTrabajo, imgData, horaStr } = fotoEnRevision;
+      const registroDia = asegurarRegistroFecha(fecha);
+      const inputNotaActual = document.querySelector(`[data-pase-nota="${nombre}"]`);
+      const notaFinal = inputNotaActual ? inputNotaActual.value.trim() : nota;
+      const actual = registroDia[horario][nombre] || {
+        estado: "sin_marcar",
+        nota: "",
+        actualizado: "",
+        fotoBiometrico: "",
+        horaBiometrico: "",
+        entradaTomada: false,
+        entradaAceptada: false,
+        fotoSalida: "",
+        horaSalida: "",
+        salidaTomada: false,
+        salidaAceptada: false,
+        obsFoto: ""
+      };
+
+      if (tipo === "entrada") {
+        registroDia[horario][nombre] = {
+          ...actual,
+          estado: marcarTrabajo ? "trabajo" : (actual.estado === "sin_marcar" ? "trabajo" : actual.estado),
+          nota: notaFinal,
+          fotoBiometrico: imgData,
+          horaBiometrico: horaStr,
+          entradaTomada: true,
+          entradaAceptada: true,
+          actualizado: horaStr
+        };
+      } else {
+        registroDia[horario][nombre] = {
+          ...actual,
+          estado: actual.estado === "sin_marcar" ? "trabajo" : actual.estado,
+          nota: notaFinal,
+          fotoSalida: imgData,
+          horaSalida: horaStr,
+          salidaTomada: true,
+          salidaAceptada: true,
+          actualizado: horaStr
+        };
+      }
+
+      fotoEnRevision = null;
+      contextoCaptura = null;
+      modalRevisionEl.classList.remove("open");
+      guardarYRefrescar(true);
+      renderPaseLista();
+    });
+
+    btnTomarOtraFotoRevision.addEventListener("click", () => {
+      if (!fotoEnRevision) return;
+      const siguienteCtx = {
+        tipo: fotoEnRevision.tipo,
+        nombre: fotoEnRevision.nombre,
+        horario: fotoEnRevision.horario,
+        fecha: fotoEnRevision.fecha,
+        nota: fotoEnRevision.nota,
+        marcarTrabajo: fotoEnRevision.marcarTrabajo
+      };
+      fotoEnRevision = null;
+      modalRevisionEl.classList.remove("open");
+      lanzarCamara(siguienteCtx);
+    });
+
+    inputFotoBiometrico.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file || !contextoCaptura) {
+        contextoCaptura = null;
+        return;
+      }
+      const comprimida = await comprimirImagenAsync(file, 850, 0.65);
+      const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+      const ctx = { ...contextoCaptura };
+      contextoCaptura = null;
+      abrirRevisionFoto({
+        ...ctx,
+        imgData: comprimida,
+        horaStr: ahoraCorto
+      });
+    });
+
+    inputFotoSalida.addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file || !contextoCaptura) {
+        contextoCaptura = null;
+        return;
+      }
+      const comprimida = await comprimirImagenAsync(file, 850, 0.65);
+      const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+      const ctx = { ...contextoCaptura };
+      contextoCaptura = null;
+      abrirRevisionFoto({
+        ...ctx,
+        imgData: comprimida,
+        horaStr: ahoraCorto
+      });
+    });
+
+    document.getElementById("gridPaseLista").addEventListener("click", (e) => {
+      const btnFoto = e.target.closest("[data-pase-foto]");
+      if (btnFoto) {
+        const nombre = btnFoto.getAttribute("data-pase-foto");
+        const inputNota = document.querySelector(`[data-pase-nota="${nombre}"]`);
+        lanzarCamara({
+          tipo: "entrada",
+          nombre,
+          horario: horarioSeleccionado,
+          fecha: fechaSeleccionada,
+          nota: inputNota ? inputNota.value.trim() : "",
+          marcarTrabajo: false
+        });
+        return;
+      }
+
+      const btnSalida = e.target.closest("[data-pase-salida]");
+      if (btnSalida) {
+        const nombre = btnSalida.getAttribute("data-pase-salida");
+        const inputNota = document.querySelector(`[data-pase-nota="${nombre}"]`);
+        lanzarCamara({
+          tipo: "salida",
+          nombre,
+          horario: horarioSeleccionado,
+          fecha: fechaSeleccionada,
+          nota: inputNota ? inputNota.value.trim() : "",
+          marcarTrabajo: false
+        });
+      }
+    });
+
+    document.getElementById("gridPaseLista").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-pase-nombre]");
+      if (!btn) return;
+      const nombre = btn.getAttribute("data-pase-nombre");
+      const nuevoEstado = btn.getAttribute("data-pase-estado");
+      const registroDia = asegurarRegistroFecha(fechaSeleccionada);
+      const inputNota = document.querySelector(`[data-pase-nota="${nombre}"]`);
+      const previo = registroDia[horarioSeleccionado][nombre] || {};
+
+      if (nuevoEstado === "trabajo" && !previo.entradaAceptada) {
+        lanzarCamara({
+          tipo: "entrada",
+          nombre,
+          horario: horarioSeleccionado,
+          fecha: fechaSeleccionada,
+          nota: inputNota ? inputNota.value.trim() : "",
+          marcarTrabajo: true
+        });
+        return;
+      }
+
+      registroDia[horarioSeleccionado][nombre] = {
+        estado: nuevoEstado,
+        nota: inputNota ? inputNota.value.trim() : "",
+        actualizado: new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" }),
+        fotoBiometrico: previo.fotoBiometrico || "",
+        horaBiometrico: previo.horaBiometrico || "",
+        entradaTomada: Boolean(previo.entradaTomada || previo.fotoBiometrico),
+        entradaAceptada: Boolean(previo.entradaAceptada),
+        fotoSalida: previo.fotoSalida || "",
+        horaSalida: previo.horaSalida || "",
+        salidaTomada: Boolean(previo.salidaTomada || previo.fotoSalida),
+        salidaAceptada: Boolean(previo.salidaAceptada),
+        obsFoto: previo.obsFoto || ""
+      };
+
+      guardarYRefrescar(true);
+      renderPaseLista();
+    });
+
+    document.getElementById("gridPaseLista").addEventListener("change", (e) => {
+      const inputNota = e.target.closest("[data-pase-nota]");
+      if (!inputNota) return;
+      const nombre = inputNota.getAttribute("data-pase-nota");
+      const registroDia = asegurarRegistroFecha(fechaSeleccionada);
+      const actual = registroDia[horarioSeleccionado][nombre] || { estado: "sin_marcar", nota: "", actualizado: "" };
+
+      registroDia[horarioSeleccionado][nombre] = {
+        ...actual,
+        nota: inputNota.value.trim(),
+        actualizado: new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" })
+      };
+
+      guardarYRefrescar(true);
+    });
+
+    window.cerrarHorarioSinMarcar = function () {
+      const etiqueta = ETIQUETAS_HORARIO[horarioSeleccionado];
+      if (!confirm(`¿Cerrar ${etiqueta} (${fechaSeleccionada}) y marcar en rojo (falta) a quienes no marcaron su asistencia?`)) return;
+      const registroDia = asegurarRegistroFecha(fechaSeleccionada);
+      const ahora = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+      INTEGRANTES_INICIALES.forEach((nombre) => {
+        const actual = registroDia[horarioSeleccionado][nombre] || { estado: "sin_marcar", nota: "", actualizado: "" };
+        if (actual.estado === "sin_marcar") {
+          registroDia[horarioSeleccionado][nombre] = {
+            estado: "falta",
+            nota: actual.nota || "No marcó asistencia al cierre",
+            actualizado: ahora
+          };
+        }
+      });
+      guardarYRefrescar(true);
+      renderPaseLista();
+    };
+
+    window.limpiarHorarioActual = function () {
+      const etiqueta = ETIQUETAS_HORARIO[horarioSeleccionado];
+      if (!confirm(`¿Limpiar el pase de lista de ${etiqueta} en la fecha ${fechaSeleccionada}?`)) return;
+      const registroDia = asegurarRegistroFecha(fechaSeleccionada);
+      INTEGRANTES_INICIALES.forEach((nombre) => {
+        registroDia[horarioSeleccionado][nombre] = {
+          estado: "sin_marcar",
+          nota: "",
+          actualizado: ""
+        };
+      });
+      guardarYRefrescar(true);
+      renderPaseLista();
+    };
+
+    document.getElementById("gridFichas").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const action = btn.getAttribute("data-action");
+      const id = Number(btn.getAttribute("data-id"));
+      const f = db.fichas.find(x => x.id === id);
+      if (!f) return;
+
+      if (action === "toggle") {
+        f.noParticipa = !f.noParticipa;
+        if (!f.noParticipa) {
+          f.estado = (Array.isArray(f.fotos) && f.fotos.length > 0) ? "verde" : "pendiente";
+        }
+        renderTablero(true);
+      } else if (action === "subir") {
+        abrirModal(id);
+      }
+    });
+
+    document.getElementById("gridFichas").addEventListener("change", (e) => {
+      const el = e.target;
+      const action = el.getAttribute("data-action");
+      const id = Number(el.getAttribute("data-id"));
+      const f = db.fichas.find(x => x.id === id);
+      if (!f) return;
+
+      if (action === "turno") {
+        f.turno = el.value;
+        guardarYRefrescar(true);
+      } else if (action === "area") {
+        f.area = el.value;
+        guardarYRefrescar(true);
+      }
+    });
+
+    window.marcarPendientesEnRojo = function () {
+      db.fichas.forEach(f => {
+        if (!f.noParticipa && f.estado !== "verde") {
+          f.estado = "rojo";
+        }
+      });
+      renderTablero(true);
+    };
+
+    window.rotarSugerencia = function () {
+      db.fichas.forEach((f, idx) => {
+        f.area = AREAS[(idx + 1) % AREAS.length];
+        f.turno = f.turno === "Matutino" ? "Vespertino" : "Matutino";
+      });
+      renderTablero(true);
+    };
+
+    window.nuevaJornada = function () {
+      if (!confirm("¿Reiniciar las 6 fichas para una nueva jornada?")) return;
+      db.fichas = db.fichas.map(f => ({
+        ...f,
+        estado: f.noParticipa ? "descanso" : "pendiente",
+        nota: "",
+        fotos: [],
+        horaSubida: ""
+      }));
+      renderTablero(true);
+    };
+
+    function contarFotosDePunto(puntoId) {
+      return fotosTemporalesModal.filter(f => f.puntoId === puntoId).length;
+    }
+
+    function renderChecklistModal() {
+      const selEl = document.getElementById("selectTurnoIslaModal");
+      const clave = selEl ? selEl.value : "matutino_a";
+      const cfg = CHECKLIST_POR_TURNO_ISLA[clave] || CHECKLIST_POR_TURNO_ISLA.matutino_a;
+      const cont = document.getElementById("checklistPuntosModal");
+      if (!cont) return;
+
+      cont.innerHTML = cfg.items.map((item) => {
+        const cant = contarFotosDePunto(item.id);
+        const lleno = cant >= item.maxFotos;
+        return `
+          <div class="check-item">
+            <div class="check-item-top">
+              <div>
+                <div class="check-label">${item.nombre}</div>
+                <div class="check-meta">Fotos: ${cant} / ${item.maxFotos} (máx. ${item.maxFotos})</div>
+              </div>
+              <button type="button" class="${lleno ? "secondary" : "success"}" style="padding:6px 10px; font-size:0.76rem;" onclick="tomarFotoPunto('${item.id}')">
+                ${lleno ? "Límite alcanzado" : "Tomar foto"}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    window.cambiarTurnoIslaModal = function () {
+      const selEl = document.getElementById("selectTurnoIslaModal");
+      if (fichaActivaModal && selEl) {
+        fichaActivaModal.turnoIslaKey = selEl.value;
+      }
+      renderChecklistModal();
+    };
+
+    window.tomarFotoPunto = function (puntoId) {
+      const selEl = document.getElementById("selectTurnoIslaModal");
+      const clave = selEl ? selEl.value : "matutino_a";
+      const cfg = CHECKLIST_POR_TURNO_ISLA[clave] || CHECKLIST_POR_TURNO_ISLA.matutino_a;
+      const item = cfg.items.find(x => x.id === puntoId);
+      if (!item) return;
+
+      const cantActual = contarFotosDePunto(item.id);
+      if (cantActual >= item.maxFotos) {
+        alert(`Ya alcanzaste el límite de ${item.maxFotos} fotos para "${item.nombre}".`);
+        return;
+      }
+
+      puntoCapturaEvidencia = {
+        id: item.id,
+        nombre: item.nombre,
+        maxFotos: item.maxFotos,
+        turnoIslaTitulo: cfg.titulo
+      };
+      inputCamaraEvidencia.value = "";
+      inputCamaraEvidencia.click();
+    };
+
+    inputCamaraEvidencia.addEventListener("change", async function (e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file || !puntoCapturaEvidencia) {
+        puntoCapturaEvidencia = null;
+        return;
+      }
+
+      const cantActual = contarFotosDePunto(puntoCapturaEvidencia.id);
+      if (cantActual >= puntoCapturaEvidencia.maxFotos) {
+        alert(`Ya alcanzaste el límite de ${puntoCapturaEvidencia.maxFotos} fotos para "${puntoCapturaEvidencia.nombre}".`);
+        puntoCapturaEvidencia = null;
+        return;
+      }
+
+      const fechaHoraStr = obtenerFechaHoraEstampada();
+      const etiqueta = `${puntoCapturaEvidencia.turnoIslaTitulo} · ${puntoCapturaEvidencia.nombre}`;
+      const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 900, 0.72);
+
+      fotosTemporalesModal.push({
+        src: comprimidaEstampada,
+        fechaHora: fechaHoraStr,
+        puntoId: puntoCapturaEvidencia.id,
+        puntoNombre: puntoCapturaEvidencia.nombre,
+        maxFotos: puntoCapturaEvidencia.maxFotos
+      });
+
+      puntoCapturaEvidencia = null;
+      e.target.value = "";
+      renderChecklistModal();
+      actualizarPreviewModal();
+    });
+
+    function actualizarPreviewModal() {
+      const contador = document.getElementById("contadorFotosModal");
+      const aviso = document.getElementById("avisoLimiteModal");
+      const grid = document.getElementById("previewGridModal");
+
+      contador.textContent = `Fotos tomadas desde la app: ${fotosTemporalesModal.length}`;
+      aviso.textContent = "";
+
+      grid.innerHTML = fotosTemporalesModal
+        .map((item, i) => `
+          <div class="foto-card-item">
+            <img src="${item.src}" alt="Foto ${i + 1}" />
+            <div class="foto-stamp-caption"><strong>${item.puntoNombre || "Evidencia"}</strong><br/>${item.fechaHora || ""}</div>
+          </div>
+        `)
+        .join("");
+    }
+
+    window.limpiarFotosModal = function () {
+      fotosTemporalesModal = [];
+      renderChecklistModal();
+      actualizarPreviewModal();
+    };
+
+    function abrirModal(id) {
+      fichaActivaModal = db.fichas.find(x => x.id === id);
+      if (!fichaActivaModal) return;
+
+      const detallePrevio = Array.isArray(fichaActivaModal.fotosDetalle) && fichaActivaModal.fotosDetalle.length
+        ? fichaActivaModal.fotosDetalle
+        : (Array.isArray(fichaActivaModal.fotos)
+            ? fichaActivaModal.fotos.map((src) => ({
+                src,
+                fechaHora: fichaActivaModal.horaSubida || "",
+                puntoId: "general",
+                puntoNombre: fichaActivaModal.area || "Evidencia",
+                maxFotos: 20
+              }))
+            : []);
+
+      fotosTemporalesModal = [...detallePrevio];
+
+      const selEl = document.getElementById("selectTurnoIslaModal");
+      if (selEl) {
+        selEl.value = fichaActivaModal.turnoIslaKey || (fichaActivaModal.turno === "Vespertino" ? "vespertino_a" : "matutino_a");
+      }
+
+      document.getElementById("modalTitulo").textContent = `Evidencia de ${fichaActivaModal.nombre}`;
+      document.getElementById("inputNota").value = fichaActivaModal.nota || "";
+      renderChecklistModal();
+      actualizarPreviewModal();
+      document.getElementById("modalEvidencia").classList.add("open");
+    }
+
+    window.cerrarModal = function () {
+      fichaActivaModal = null;
+      fotosTemporalesModal = [];
+      puntoCapturaEvidencia = null;
+      document.getElementById("modalEvidencia").classList.remove("open");
+    };
+
+    function comprimirImagenAsync(file, maxWidth, quality) {
+      return capturarYEstamparFotoAsync(file, "Faro Santander", obtenerFechaHoraEstampada(), maxWidth, quality);
+    }
+
+    window.guardarEvidencia = function () {
+      if (!fichaActivaModal) return;
+      if (!fotosTemporalesModal.length) {
+        alert("Toma al menos 1 foto desde la cámara de la aplicación antes de guardar.");
+        return;
+      }
+
+      const fotosFinales = fotosTemporalesModal.map(x => x.src);
+      const nota = document.getElementById("inputNota").value.trim();
+      const ahora = obtenerFechaHoraEstampada();
+      const selEl = document.getElementById("selectTurnoIslaModal");
+      const claveTI = selEl ? selEl.value : "matutino_a";
+      const cfgTI = CHECKLIST_POR_TURNO_ISLA[claveTI] || CHECKLIST_POR_TURNO_ISLA.matutino_a;
+
+      const targetFicha = db.fichas.find(x => x.id === fichaActivaModal.id) || fichaActivaModal;
+      targetFicha.fotos = fotosFinales;
+      targetFicha.fotosDetalle = [...fotosTemporalesModal];
+      targetFicha.turnoIslaKey = claveTI;
+      targetFicha.area = cfgTI.titulo;
+      targetFicha.nota = nota;
+      targetFicha.horaSubida = ahora;
+      targetFicha.estado = "verde";
+      targetFicha.noParticipa = false;
+
+      if (!Array.isArray(db.evidencias)) db.evidencias = [];
+      db.evidencias.unshift({
+        id: Date.now(),
+        nombre: targetFicha.nombre,
+        turno: targetFicha.turno,
+        area: targetFicha.area,
+        nota,
+        hora: ahora,
+        fotos: fotosFinales
+      });
+
+      guardarYRefrescar(true);
+      cerrarModal();
+      renderTablero(false);
+    };
+
+    function actualizarPreviewQueja() {
+      const cont = document.getElementById("contadorFotosQueja");
+      const grid = document.getElementById("previewFotosQueja");
+      if (!cont || !grid) return;
+      cont.textContent = `Fotos de queja tomadas: ${fotosQuejaTemporales.length} / 10`;
+      grid.innerHTML = fotosQuejaTemporales.map((f) => `
+        <div class="foto-card-item">
+          <img src="${f.src}" alt="Foto de queja" />
+          <div class="foto-stamp-caption">${f.fechaHora || ""}</div>
+        </div>
+      `).join("");
+    }
+
+    window.tomarFotoQueja = function () {
+      if (fotosQuejaTemporales.length >= 10) {
+        alert("Máximo 10 fotos por reporte de queja.");
+        return;
+      }
+      inputCamaraQueja.value = "";
+      inputCamaraQueja.click();
+    };
+
+    window.limpiarFotosQuejaTemp = function () {
+      fotosQuejaTemporales = [];
+      actualizarPreviewQueja();
+    };
+
+    inputCamaraQueja.addEventListener("change", async function (e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (fotosQuejaTemporales.length >= 10) {
+        alert("Máximo 10 fotos por reporte de queja.");
+        return;
+      }
+      const fechaHoraStr = obtenerFechaHoraEstampada();
+      const tipoVal = document.getElementById("quejaTipo")?.value || "limpieza";
+      const etiqueta = `QUEJA (${tipoVal.toUpperCase()})`;
+      const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 900, 0.72);
+      fotosQuejaTemporales.push({ src: comprimida, fechaHora: fechaHoraStr });
+      e.target.value = "";
+      actualizarPreviewQueja();
+    });
+
+    window.publicarQuejaReporte = function () {
+      const tipo = document.getElementById("quejaTipo")?.value || "limpieza";
+      const persona = document.getElementById("quejaPersona")?.value || "No aplica / General";
+      const area = (document.getElementById("quejaArea")?.value || "").trim();
+      const descripcion = (document.getElementById("quejaDescripcion")?.value || "").trim();
+
+      if (!descripcion && !fotosQuejaTemporales.length) {
+        alert("Escribe una descripción o toma al menos 1 foto desde la cámara para publicar la queja/reporte.");
+        return;
+      }
+
+      const ahora = obtenerFechaHoraEstampada();
+      if (!Array.isArray(db.quejas)) db.quejas = [];
+      db.quejas.unshift({
+        id: Date.now(),
+        tipo,
+        persona,
+        area: area || "Estación Faro Santander",
+        descripcion,
+        fechaHora: ahora,
+        fotos: fotosQuejaTemporales.map(x => x.src)
+      });
+
+      document.getElementById("quejaArea").value = "";
+      document.getElementById("quejaDescripcion").value = "";
+      fotosQuejaTemporales = [];
+      actualizarPreviewQueja();
+      guardarYRefrescar(true);
+      renderQuejas();
+      alert("Queja / reporte guardado con fecha y hora.");
+    };
+
+    let filtroQuejaActual = "todas";
+
+    window.seleccionarFiltroQueja = function (tipo) {
+      filtroQuejaActual = tipo || "todas";
+      ["todas", "limpieza", "dano", "estado"].forEach((k) => {
+        const btn = document.getElementById(`filtro-queja-${k}`);
+        if (btn) btn.classList.toggle("active", k === filtroQuejaActual);
+      });
+      renderQuejas();
+    };
+
+    function renderQuejas() {
+      const cont = document.getElementById("listaQuejasReportes");
+      if (!cont) return;
+      const listaCompleta = Array.isArray(db.quejas) ? db.quejas : [];
+      const lista = filtroQuejaActual === "todas"
+        ? listaCompleta
+        : listaCompleta.filter(q => (q.tipo || "limpieza") === filtroQuejaActual);
+
+      if (!lista.length) {
+        cont.innerHTML = `<div class="meta-small">${listaCompleta.length ? "No hay reportes en este filtro." : "No hay quejas o reportes registrados todavía."}</div>`;
+        return;
+      }
+
+      const etiquetasTipo = {
+        limpieza: "Falta de limpieza",
+        dano: "Cosa dañada / Falla",
+        estado: "Mal estado de la estación"
+      };
+
+      cont.innerHTML = lista.map((q) => `
+        <div class="queja-card tipo-${q.tipo || "limpieza"}">
+          <div class="ficha-top">
+            <strong>${etiquetasTipo[q.tipo] || "Reporte"}</strong>
+            <span class="badge badge-pendiente">${q.fechaHora || ""}</span>
+          </div>
+          <div class="meta-small"><strong>Área:</strong> ${q.area || "—"} · <strong>Involucrado:</strong> ${q.persona || "No aplica"}</div>
+          ${q.descripcion ? `<div style="margin-top:8px; font-size:0.86rem; color:#f8fafc;">${q.descripcion}</div>` : ""}
+          ${
+            Array.isArray(q.fotos) && q.fotos.length
+              ? `<div class="thumbs-grid">${q.fotos.map(src => `<img src="${src}" alt="Evidencia de reporte" />`).join("")}</div>`
+              : ""
+          }
+        </div>
+      `).join("");
+    }
+
+    window.cambiarVista = function (vista) {
+      document.querySelectorAll(".section-view").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById(`view-${vista}`).classList.add("active");
+      document.getElementById(`nav-${vista}`).classList.add("active");
+    };
+
+    (function setupPWA() {
+      try {
+        const manifestData = {"name": "Faro Santander — Limpieza y Mantenimiento", "short_name": "Faro Santander", "start_url": ".", "scope": ".", "display": "standalone", "background_color": "#0f172a", "theme_color": "#0c4a6e", "icons": [{"src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%230c4a6e'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-size='96' fill='%23f8fafc' font-family='Arial,sans-serif' font-weight='bold'%3EFS%3C/text%3E%3C/svg%3E", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable"}, {"src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%230c4a6e'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-size='250' fill='%23f8fafc' font-family='Arial,sans-serif' font-weight='bold'%3EFS%3C/text%3E%3C/svg%3E", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable"}]};
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: "application/manifest+json" });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const linkEl = document.getElementById("pwaManifestLink");
+        if (linkEl) linkEl.href = manifestUrl;
+
+        if ("serviceWorker" in navigator) {
+          const swCode = `
+            self.addEventListener("install", (event) => {
+              self.skipWaiting();
+            });
+            self.addEventListener("activate", (event) => {
+              event.waitUntil(self.clients.claim());
+            });
+            self.addEventListener("fetch", (event) => {});
+          `;
+          const swBlob = new Blob([swCode], { type: "application/javascript" });
+          const swUrl = URL.createObjectURL(swBlob);
+          navigator.serviceWorker.register(swUrl).catch(() => {});
+        }
+      } catch (err) {
+        console.warn("PWA setup:", err);
+      }
+    })();
+
+    function reiniciarPaseListaDiaSilencioso(fechaISO) {
+      if (!db.paseLista || typeof db.paseLista !== "object") {
+        db.paseLista = {};
+      }
+      db.paseLista[fechaISO] = crearDiaPaseListaVacio();
+    }
+
+    function aplicarReinicioAutomaticoDelDia(hoyISO) {
+      fechaSeleccionada = hoyISO;
+      inputFechaPase.value = hoyISO;
+      reiniciarPaseListaDiaSilencioso(hoyISO);
+      db.fichas = db.fichas.map(f => ({
+        ...f,
+        estado: f.noParticipa ? "descanso" : "pendiente",
+        nota: "",
+        fotos: [],
+        horaSubida: ""
+      }));
+      localStorage.setItem(ULTIMA_FECHA_KEY, hoyISO);
+      guardarYRefrescar(true);
+    }
+
+    function verificarCambioDeDiaAutomatico(forzarRender = true) {
+      const hoyISO = obtenerFechaHoyISO();
+      const ultimaFechaGuardada = localStorage.getItem(ULTIMA_FECHA_KEY);
+
+      if (ultimaFechaGuardada !== hoyISO) {
+        aplicarReinicioAutomaticoDelDia(hoyISO);
+        if (forzarRender) {
+          renderTablero(false);
+          renderPaseLista();
+          renderPanelEncargada();
+        }
+        return true;
+      }
+
+      if (!db.paseLista || !db.paseLista[hoyISO]) {
+        reiniciarPaseListaDiaSilencioso(hoyISO);
+        localStorage.setItem(ULTIMA_FECHA_KEY, hoyISO);
+        guardarYRefrescar(true);
+        if (forzarRender) {
+          renderPaseLista();
+        }
+      }
+      return false;
+    }
+
+    function horarioEstaCerradoAuto() {
+      return false;
+    }
+
+    function generarResumenCierreMedianoche(fechaISO) {
+      const registroDia = asegurarRegistroFecha(fechaISO);
+      const resumen = {
+        fecha: fechaISO,
+        generadoA: "00:00",
+        actualizado: new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" }),
+        porHorario: {}
+      };
+      HORARIOS.forEach((h) => {
+        const trabajaron = [];
+        const faltaron = [];
+        const descansaron = [];
+        const sinMarcar = [];
+        INTEGRANTES_INICIALES.forEach((nombre) => {
+          const item = registroDia[h]?.[nombre] || { estado: "sin_marcar" };
+          if (item.estado === "trabajo") trabajaron.push(nombre);
+          else if (item.estado === "falta") faltaron.push(nombre);
+          else if (item.estado === "descanso") descansaron.push(nombre);
+          else sinMarcar.push(nombre);
+        });
+        resumen.porHorario[h] = { trabajaron, faltaron, descansaron, sinMarcar };
+      });
+      return resumen;
+    }
+
+    function aplicarCierreAutomaticoEntradasSalidas(forzarRender = true) {
+      const hoyISO = obtenerFechaHoyISO();
+      const ahora = new Date();
+      const pasoMedianocheHoy = (ahora.getHours() * 60 + ahora.getMinutes()) >= 0;
+      let huboCambios = false;
+
+      if (!db.cierresMedianoche || typeof db.cierresMedianoche !== "object") {
+        db.cierresMedianoche = {};
+      }
+
+      Object.keys(db.paseLista || {}).forEach((fechaKey) => {
+        const esDiaAnterior = fechaKey < hoyISO;
+        const esHoyDespuesMedianoche = fechaKey === hoyISO && pasoMedianocheHoy;
+        if (!esDiaAnterior && !esHoyDespuesMedianoche) return;
+
+        const resumenGenerado = generarResumenCierreMedianoche(fechaKey);
+        const previoResumen = JSON.stringify(db.cierresMedianoche[fechaKey] || {});
+        const nuevoResumen = JSON.stringify(resumenGenerado);
+        if (previoResumen !== nuevoResumen) {
+          db.cierresMedianoche[fechaKey] = resumenGenerado;
+          huboCambios = true;
+        }
+      });
+
+      if (huboCambios) {
+        guardarYRefrescar(true);
+        if (forzarRender) {
+          renderPaseLista();
+          renderPanelEncargada();
+        }
+      }
+      return huboCambios;
+    }
+
+    const PIN_ENCARGADA = "1985";
+    const SESSION_ENCARGADA_KEY = "faro_santander_encargados_activos_v28";
+    let esEncargadaActiva = sessionStorage.getItem(SESSION_ENCARGADA_KEY) === "1";
+
+    const fechaControlEncargadaEl = document.getElementById("fechaControlEncargada");
+    const turnoControlEncargadaEl = document.getElementById("turnoControlEncargada");
+    if (fechaControlEncargadaEl) fechaControlEncargadaEl.value = obtenerFechaHoyISO();
+
+    function actualizarInterfazEncargada() {
+      const btnHeader = document.getElementById("btnModoEncargada");
+      const badgeHeader = document.getElementById("badgeEncargadaActiva");
+      const estadoPanel = document.getElementById("estadoEncargadaPanel");
+      const btnEntrar = document.getElementById("btnPanelAccesoEncargada");
+      const btnSalir = document.getElementById("btnPanelSalirEncargada");
+
+      if (esEncargadaActiva) {
+        if (btnHeader) {
+          btnHeader.textContent = "Encargados activos (salir)";
+          btnHeader.className = "success";
+          btnHeader.style.padding = "5px 11px";
+          btnHeader.style.fontSize = "0.76rem";
+          btnHeader.style.borderRadius = "999px";
+        }
+        if (badgeHeader) badgeHeader.style.display = "inline-block";
+        if (estadoPanel) {
+          estadoPanel.textContent = "ENCARGADOS AUTORIZADOS";
+          estadoPanel.className = "badge badge-verde";
+        }
+        if (btnEntrar) btnEntrar.style.display = "none";
+        if (btnSalir) btnSalir.style.display = "inline-block";
+      } else {
+        if (btnHeader) {
+          btnHeader.textContent = "Modo Encargados: Bloqueado (solo lectura)";
+          btnHeader.className = "ghost-toggle";
+          btnHeader.style.padding = "5px 11px";
+          btnHeader.style.fontSize = "0.76rem";
+          btnHeader.style.borderRadius = "999px";
+        }
+        if (badgeHeader) badgeHeader.style.display = "none";
+        if (estadoPanel) {
+          estadoPanel.textContent = "SOLO LECTURA";
+          estadoPanel.className = "badge badge-descanso";
+        }
+        if (btnEntrar) btnEntrar.style.display = "inline-block";
+        if (btnSalir) btnSalir.style.display = "none";
+      }
+      renderPanelEncargada();
+    }
+
+    window.toggleModoEncargada = function () {
+      if (esEncargadaActiva) {
+        cerrarSesionEncargada();
+        return;
+      }
+      const errEl = document.getElementById("errorPinEncargada");
+      const inputEl = document.getElementById("inputPinEncargada");
+      if (errEl) errEl.textContent = "";
+      if (inputEl) inputEl.value = "";
+      document.getElementById("modalPinEncargada").classList.add("open");
+      if (inputEl) setTimeout(() => inputEl.focus(), 60);
+    };
+
+    window.cerrarModalPinEncargada = function () {
+      document.getElementById("modalPinEncargada").classList.remove("open");
+    };
+
+    window.validarPinEncargada = function () {
+      const inputEl = document.getElementById("inputPinEncargada");
+      const errEl = document.getElementById("errorPinEncargada");
+      const pinIngresado = (inputEl ? inputEl.value : "").trim();
+      if (pinIngresado === PIN_ENCARGADA) {
+        esEncargadaActiva = true;
+        sessionStorage.setItem(SESSION_ENCARGADA_KEY, "1");
+        cerrarModalPinEncargada();
+        actualizarInterfazEncargada();
+        renderQuejas();
+      } else if (errEl) {
+        errEl.textContent = "PIN incorrecto. Solo los encargados con el PIN autorizado pueden desbloquear esta función.";
+      }
+    };
+
+    window.cerrarSesionEncargada = function () {
+      esEncargadaActiva = false;
+      sessionStorage.removeItem(SESSION_ENCARGADA_KEY);
+      actualizarInterfazEncargada();
+    };
+
+    window.guardarEvaluacionEncargada = function (fichaId) {
+      if (!esEncargadaActiva) {
+        alert("Solo los encargados con sesión activa pueden calificar y publicar comentarios.");
+        toggleModoEncargada();
+        return;
+      }
+      const f = db.fichas.find(x => x.id === fichaId);
+      if (!f) return;
+
+      const selCal = document.getElementById(`cal-encargada-${fichaId}`);
+      const inpCom = document.getElementById(`com-encargada-${fichaId}`);
+      const cal = selCal ? Number(selCal.value) : 0;
+      const com = inpCom ? inpCom.value.trim() : "";
+      const ahora = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+
+      f.calificacionEncargada = cal;
+      f.comentarioEncargada = com;
+      f.fechaCalificacionEncargada = ahora;
+
+      guardarYRefrescar(true);
+      renderTablero(false);
+      renderPanelEncargada();
+      alert(`Evaluación de ${f.nombre} guardada.`);
+    };
+
+    function renderPanelEncargada() {
+      const contAsistencia = document.getElementById("resumenQuienesTrabajaron");
+      const contCalif = document.getElementById("listaCalificacionEncargada");
+      if (!contAsistencia || !contCalif) return;
+
+      const fechaConsulta = (fechaControlEncargadaEl && fechaControlEncargadaEl.value) || obtenerFechaHoyISO();
+      const turnoFiltro = (turnoControlEncargadaEl && turnoControlEncargadaEl.value) || "TODOS";
+      const registroDia = asegurarRegistroFecha(fechaConsulta);
+
+      const horariosAMostrar = turnoFiltro === "TODOS" ? HORARIOS : [turnoFiltro];
+      const trabajaronSet = new Set();
+      const filasHtml = [];
+
+      horariosAMostrar.forEach((h) => {
+        INTEGRANTES_INICIALES.forEach((nombre) => {
+          const item = registroDia[h][nombre] || { estado: "sin_marcar" };
+          if (item.estado === "trabajo") trabajaronSet.add(nombre);
+          const etiquetaEstado = {
+            trabajo: "TRABAJÓ",
+            falta: "FALTA",
+            descanso: "DESCANSO",
+            sin_marcar: "SIN MARCAR"
+          }[item.estado] || "SIN MARCAR";
+
+          const badgeCls = {
+            trabajo: "badge-verde",
+            falta: "badge-rojo",
+            descanso: "badge-descanso",
+            sin_marcar: "badge-pendiente"
+          }[item.estado] || "badge-pendiente";
+
+          filasHtml.push(`
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; background:var(--card-2); border:1px solid var(--border); margin-bottom:6px; flex-wrap:wrap;">
+              <div>
+                <strong>${nombre}</strong>
+                <span class="meta-small" style="margin-left:6px;">· ${ETIQUETAS_HORARIO[h]}</span>
+                ${item.horaBiometrico ? `<div class="meta-small">Entrada: ${item.horaBiometrico}</div>` : ""}
+                ${item.horaSalida ? `<div class="meta-small">Salida: ${item.horaSalida}</div>` : ""}
+                ${item.nota ? `<div class="meta-small">Nota: ${item.nota}</div>` : ""}
+              </div>
+              <span class="badge ${badgeCls}">${etiquetaEstado}</span>
+            </div>
+          `);
+        });
+      });
+
+      const listaQuienes = Array.from(trabajaronSet);
+      const cierreDia = db.cierresMedianoche && db.cierresMedianoche[fechaConsulta];
+      const resumenCorteHtml = cierreDia
+        ? `<div style="margin-bottom:10px; padding:10px; border-radius:10px; background:rgba(14,165,233,0.12); border:1px solid #38bdf8;">
+             <div style="font-weight:800; color:#7dd3fc; font-size:0.84rem;">Corte automático de las 12:00 a.m. (00:00) · ${fechaConsulta}</div>
+             <div class="meta-small" style="color:#e2e8f0; margin-top:4px;">
+               • Mañana trabajaron: ${cierreDia.porHorario?.Manana?.trabajaron?.join(", ") || "Ninguno"}<br/>
+               • Tarde trabajaron: ${cierreDia.porHorario?.Tarde?.trabajaron?.join(", ") || "Ninguno"}<br/>
+               • Noche trabajaron: ${cierreDia.porHorario?.Noche?.trabajaron?.join(", ") || "Ninguno"}
+             </div>
+           </div>`
+        : `<div class="meta-small" style="margin-bottom:8px;">Corte automático programado a las 12:00 a.m. (00:00) para resumen de encargados.</div>`;
+
+      contAsistencia.innerHTML = `
+        ${resumenCorteHtml}
+        <div class="status-note" style="margin-bottom:8px;">
+          Sí trabajaron (${listaQuienes.length}): ${listaQuienes.length ? listaQuienes.join(", ") : "Nadie marcado como 'Trabajó' aún"}
+        </div>
+        ${filasHtml.join("")}
+      `;
+
+      contCalif.innerHTML = db.fichas.map((f) => {
+        const cantFotos = Array.isArray(f.fotos) ? f.fotos.length : 0;
+        return `
+          <div class="galeria-card">
+            <div class="ficha-top">
+              <strong>${f.nombre}</strong>
+              <span class="badge ${cantFotos > 0 ? "badge-verde" : "badge-pendiente"}">${cantFotos} foto(s)</span>
+            </div>
+            <div class="meta-small">Turno: ${f.turno} · Área: ${f.area}</div>
+            ${
+              cantFotos > 0
+                ? `<div class="thumbs-grid">${f.fotos.slice(0, 8).map(src => `<img src="${src}" alt="Foto de ${f.nombre}" />`).join("")}</div>`
+                : `<div class="meta-small" style="color:#fbbf24;">Sin fotos subidas todavía</div>`
+            }
+            ${
+              esEncargadaActiva
+                ? `
+                  <div class="campos" style="margin-top:10px;">
+                    <label style="font-size:0.78rem; color:#cbd5e1;">
+                      Calificación (1 a 5):
+                      <select id="cal-encargada-${f.id}" style="margin-top:4px;">
+                        <option value="0" ${!f.calificacionEncargada ? "selected" : ""}>Sin calificar</option>
+                        <option value="1" ${f.calificacionEncargada === 1 ? "selected" : ""}>★☆☆☆☆ (1 - Deficiente)</option>
+                        <option value="2" ${f.calificacionEncargada === 2 ? "selected" : ""}>★★☆☆☆ (2 - Regular)</option>
+                        <option value="3" ${f.calificacionEncargada === 3 ? "selected" : ""}>★★★☆☆ (3 - Aceptable)</option>
+                        <option value="4" ${f.calificacionEncargada === 4 ? "selected" : ""}>★★★★☆ (4 - Buena)</option>
+                        <option value="5" ${f.calificacionEncargada === 5 ? "selected" : ""}>★★★★★ (5 - Excelente)</option>
+                      </select>
+                    </label>
+                    <label style="font-size:0.78rem; color:#cbd5e1;">
+                      Comentario exclusivo de la Encargados:
+                      <input type="text" id="com-encargada-${f.id}" value="${(f.comentarioEncargada || "").replace(/"/g, "&quot;")}" placeholder="Escribe tu observación o comentario..." style="margin-top:4px;" />
+                    </label>
+                  </div>
+                  <div class="ficha-actions">
+                    <button type="button" class="success" onclick="guardarEvaluacionEncargada(${f.id})">Publicar calificación y comentario</button>
+                  </div>
+                `
+                : `
+                  <div class="meta-small" style="color:#94a3b8; margin-top:8px;">
+                    <strong>Calificación:</strong> ${f.calificacionEncargada ? "★".repeat(f.calificacionEncargada) + ` (${f.calificacionEncargada}/5)` : "Sin calificar"}<br/>
+                    <strong>Comentario de Encargados:</strong> ${f.comentarioEncargada ? `"${f.comentarioEncargada}"` : "Sin comentario publicado"}
+                  </div>
+                `
+            }
+          </div>
+        `;
+      }).join("");
+    }
+
+    if (fechaControlEncargadaEl) fechaControlEncargadaEl.addEventListener("change", renderPanelEncargada);
+    if (turnoControlEncargadaEl) turnoControlEncargadaEl.addEventListener("change", renderPanelEncargada);
+
+    verificarCambioDeDiaAutomatico(false);
+    aplicarCierreAutomaticoEntradasSalidas(false);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        verificarCambioDeDiaAutomatico(true);
+        aplicarCierreAutomaticoEntradasSalidas(true);
+      }
+    });
+    window.addEventListener("focus", () => {
+      verificarCambioDeDiaAutomatico(true);
+      aplicarCierreAutomaticoEntradasSalidas(true);
+    });
+    setInterval(() => {
+      verificarCambioDeDiaAutomatico(true);
+      aplicarCierreAutomaticoEntradasSalidas(true);
+    }, 15000);
+
+    renderTablero(false);
+    renderPaseLista();
+    actualizarInterfazEncargada();
+    renderQuejas();
+  </script>
+
+  <script>
+    (function () {
+      let toquesRapidos = 0;
+      let timerToques = null;
+      const META_TOQUES = 7;
+      const VENTANA_MS = 1400;
+
+      document.addEventListener("click", (e) => {
+        if (e.target.closest("button, a, input, textarea, select, .modal-backdrop")) {
+          toquesRapidos = 0;
+          return;
+        }
+        toquesRapidos += 1;
+        clearTimeout(timerToques);
+        if (toquesRapidos >= META_TOQUES) {
+          toquesRapidos = 0;
+          if (typeof toggleModoEncargada === "function") {
+            toggleModoEncargada();
+          } else if (typeof cambiarVista === "function") {
+            cambiarVista("encargada");
+          }
+          return;
+        }
+        timerToques = setTimeout(() => {
+          toquesRapidos = 0;
+        }, VENTANA_MS);
+      }, true);
+    })();
+  </script>
+</body>
+</html>
