@@ -672,7 +672,7 @@
       <div id="gridPaseLista" class="grid-6"></div>
     </section>
 
-    <!-- VISTA OCULTA ADMINISTRADOR: TODO EN UNA SOLA PANTALLA (7 TOQUES + CONTRASEÑA) -->
+    <!-- VISTA OCULTA ADMINISTRADOR -->
     <section id="view-encargada" class="section-view">
       <div class="summary-box" style="border-color:#38bdf8;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -688,7 +688,6 @@
         </div>
       </div>
 
-      <!-- 1. TABLA RESUMEN GENERAL DE TODO (ASISTENCIA + LIMPIEZA + FOTOS + CALIFICACIÓN) -->
       <div class="summary-box">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
           <strong>1. Resumen Completo del Día (Asistencias + Limpieza)</strong>
@@ -719,14 +718,12 @@
         <div id="resumenQuienesTrabajaron" style="margin-top:12px;"></div>
       </div>
 
-      <!-- 2. REVISIÓN, CALIFICACIÓN Y BORRADO DE FOTOS DE LIMPIEZA -->
       <div class="summary-box">
         <strong>2. Evidencias de Limpieza, Calificación y Control de Fotos</strong>
         <div class="meta-small">Como administrador puedes calificar del 1 al 5, dejar comentarios, quitar fotos mal tomadas o reiniciar una tarjeta si hace falta.</div>
         <div id="listaCalificacionEncargada" style="margin-top:12px;"></div>
       </div>
 
-      <!-- 3. SEGURIDAD: CONTRASENA DEL ADMINISTRADOR Y CLAVES DE PARTICIPANTES -->
       <div class="summary-box" style="border-color:#0ea5e9;">
         <strong>3. Contraseña de Administrador y Claves de Tarjetas</strong>
         <p class="meta-small" style="margin-top:4px;">
@@ -746,7 +743,7 @@
         <div class="galeria-card" style="margin-top:10px;">
           <strong style="font-size:0.9rem;">Claves individuales de las 6 tarjetas (Protección de fotos)</strong>
           <div class="meta-small">
-            Cada participante usa su clave para subir o quitar fotos <strong>solo en su propia tarjeta</strong>. Si dejas un campo vacío, esa tarjeta pide clave para protegerse.
+            Cada participante usa su clave para subir o quitar fotos <strong>solo en su propia tarjeta</strong>.
           </div>
           <div id="listaClavesParticipantesAdmin" class="campos" style="margin-top:10px;"></div>
           <div class="ficha-actions">
@@ -756,7 +753,7 @@
       </div>
     </section>
 
-    <!-- VISTA QUEJAS Y REPORTES DE FALLAS / FALTA DE LIMPIEZA -->
+    <!-- VISTA QUEJAS Y REPORTES -->
     <section id="view-quejas" class="section-view">
       <div class="summary-box">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -825,7 +822,7 @@
       </div>
     </section>
 
-    <!-- VISTA AYUDA: INSTRUCCIONES PASO A PASO Y ROL DE LIMPIEZA -->
+    <!-- VISTA AYUDA -->
     <section id="view-ayuda" class="section-view">
       <div class="summary-box">
         <strong>Centro de Ayuda — Cómo usar la aplicación paso a paso</strong>
@@ -890,7 +887,7 @@
     </div>
   </div>
 
-  <!-- MODAL ACCESO OCULTO ADMINISTRADOR (7 TOQUES) -->
+  <!-- MODAL ACCESO OCULTO ADMINISTRADOR -->
   <div id="modalPinEncargada" class="modal-backdrop">
     <div class="modal-box">
       <h3 style="margin-top:0;">Acceso Oculto — Administrador</h3>
@@ -911,7 +908,7 @@
     </div>
   </div>
 
-  <!-- MODAL CLAVE DE TARJETA DE PARTICIPANTE (PARA SUBIR / QUITAR FOTOS) -->
+  <!-- MODAL CLAVE DE TARJETA DE PARTICIPANTE -->
   <div id="modalClaveTarjeta" class="modal-backdrop">
     <div class="modal-box">
       <h3 id="tituloClaveTarjeta" style="margin-top:0;">Tarjeta protegida</h3>
@@ -1059,8 +1056,29 @@
     inputCamaraQueja.style.display = "none";
     document.body.appendChild(inputCamaraQueja);
 
+    const PUNTO_CAPTURA_TEMP_KEY = "faro_santander_punto_captura_temp";
     let puntoCapturaEvidencia = null;
     let fotosQuejaTemporales = [];
+
+    function guardarPuntoCapturaRespaldo(obj) {
+      puntoCapturaEvidencia = obj;
+      try {
+        if (obj) sessionStorage.setItem(PUNTO_CAPTURA_TEMP_KEY, JSON.stringify(obj));
+        else sessionStorage.removeItem(PUNTO_CAPTURA_TEMP_KEY);
+      } catch {}
+    }
+
+    function obtenerPuntoCapturaRespaldo() {
+      if (puntoCapturaEvidencia) return puntoCapturaEvidencia;
+      try {
+        const raw = sessionStorage.getItem(PUNTO_CAPTURA_TEMP_KEY);
+        if (raw) {
+          puntoCapturaEvidencia = JSON.parse(raw);
+          return puntoCapturaEvidencia;
+        }
+      } catch {}
+      return null;
+    }
 
     function obtenerFechaHoraEstampada() {
       return new Date().toLocaleString("es-MX", {
@@ -1073,59 +1091,83 @@
       });
     }
 
-    function capturarYEstamparFotoAsync(file, etiquetaArriba, fechaHoraStr, maxWidth = 520, quality = 0.45) {
-      return new Promise((resolve) => {
+    async function cargarOrigenImagen(file) {
+      if (typeof createImageBitmap === "function") {
+        try {
+          const bitmap = await createImageBitmap(file);
+          return {
+            source: bitmap,
+            width: bitmap.width,
+            height: bitmap.height,
+            cleanup: () => { try { bitmap.close(); } catch {} }
+          };
+        } catch {}
+      }
+
+      return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function (ev) {
           const img = new Image();
           img.onload = function () {
-            const renderConTamano = (wMax, q) => {
-              const scale = Math.min(1, wMax / img.width);
-              const canvas = document.createElement("canvas");
-              canvas.width = Math.max(1, Math.round(img.width * scale));
-              canvas.height = Math.max(1, Math.round(img.height * scale));
-              const ctx = canvas.getContext("2d");
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-              const barHeight = Math.max(36, Math.round(canvas.height * 0.085));
-              ctx.fillStyle = "rgba(11, 18, 32, 0.80)";
-              ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
-
-              const fontSize = Math.max(11, Math.round(barHeight * 0.34));
-              ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
-              ctx.fillStyle = "#f8fafc";
-              ctx.textBaseline = "middle";
-
-              const textoLinea1 = `${fechaHoraStr}`;
-              const textoLinea2 = etiquetaArriba ? `${etiquetaArriba}` : "Faro Santander";
-
-              if (barHeight >= 48) {
-                ctx.fillText(textoLinea2, 10, canvas.height - barHeight * 0.68);
-                ctx.fillStyle = "#7dd3fc";
-                ctx.fillText(textoLinea1, 10, canvas.height - barHeight * 0.28);
-              } else {
-                ctx.fillText(`${textoLinea2} · ${textoLinea1}`, 8, canvas.height - barHeight * 0.5);
-              }
-
-              return canvas.toDataURL("image/jpeg", q);
-            };
-
-            let out = renderConTamano(maxWidth, quality);
-            if (out.length > 70000) {
-              out = renderConTamano(400, 0.36);
-            }
-            resolve(out);
+            resolve({
+              source: img,
+              width: img.naturalWidth || img.width,
+              height: img.naturalHeight || img.height,
+              cleanup: () => {}
+            });
           };
-          img.onerror = function () {
-            resolve(ev.target.result || "");
-          };
+          img.onerror = reject;
           img.src = ev.target.result;
         };
-        reader.onerror = function () {
-          resolve("");
-        };
+        reader.onerror = reject;
         reader.readAsDataURL(file);
       });
+    }
+
+    async function capturarYEstamparFotoAsync(file, etiquetaArriba, fechaHoraStr, maxWidth = 560, quality = 0.48) {
+      try {
+        const { source, width, height, cleanup } = await cargarOrigenImagen(file);
+        const renderConTamano = (wMax, q) => {
+          const scale = Math.min(1, wMax / Math.max(1, width));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(width * scale));
+          canvas.height = Math.max(1, Math.round(height * scale));
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+
+          const barHeight = Math.max(36, Math.round(canvas.height * 0.085));
+          ctx.fillStyle = "rgba(11, 18, 32, 0.80)";
+          ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
+
+          const fontSize = Math.max(11, Math.round(barHeight * 0.34));
+          ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
+          ctx.fillStyle = "#f8fafc";
+          ctx.textBaseline = "middle";
+
+          const textoLinea1 = `${fechaHoraStr}`;
+          const textoLinea2 = etiquetaArriba ? `${etiquetaArriba}` : "Faro Santander";
+
+          if (barHeight >= 48) {
+            ctx.fillText(textoLinea2, 10, canvas.height - barHeight * 0.68);
+            ctx.fillStyle = "#7dd3fc";
+            ctx.fillText(textoLinea1, 10, canvas.height - barHeight * 0.28);
+          } else {
+            ctx.fillText(`${textoLinea2} · ${textoLinea1}`, 8, canvas.height - barHeight * 0.5);
+          }
+
+          return canvas.toDataURL("image/jpeg", q);
+        };
+
+        let out = renderConTamano(maxWidth, quality);
+        if (out.length > 75000) {
+          out = renderConTamano(420, 0.38);
+        }
+        cleanup();
+        return out;
+      } catch (err) {
+        console.error("Error procesando imagen:", err);
+        return "";
+      }
     }
 
     const MAX_FOTOS = 15;
@@ -1157,7 +1199,6 @@
     const PIN_ADMIN_DEFAULT = "1985";
     const STORAGE_KEY = "faro_santander_limpieza_v29";
     const ULTIMA_FECHA_KEY = "faro_santander_ultima_fecha_v29";
-    const BORRADOR_EVIDENCIA_KEY = "faro_santander_borrador_evidencia_v29";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA5lNh2hQkKcIXRzCXSKLhYJxf1vpmYH1w",
@@ -1384,39 +1425,6 @@
     let fichaActivaModal = null;
     let fotosTemporalesModal = [];
 
-    function guardarBorradorModal() {
-      if (!fichaActivaModal) return;
-      try {
-        const payload = {
-          fichaId: fichaActivaModal.id,
-          turnoIslaKey: document.getElementById("selectTurnoIslaModal")?.value || fichaActivaModal.turnoIslaKey || "matutino_a",
-          nota: document.getElementById("inputNota")?.value || "",
-          fotos: fotosTemporalesModal
-        };
-        localStorage.setItem(BORRADOR_EVIDENCIA_KEY, JSON.stringify(payload));
-      } catch (e) {
-        console.warn("No se pudo guardar borrador temporal:", e);
-      }
-    }
-
-    function limpiarBorradorModal() {
-      try {
-        localStorage.removeItem(BORRADOR_EVIDENCIA_KEY);
-      } catch {}
-    }
-
-    function leerBorradorModal(fichaId) {
-      try {
-        const raw = localStorage.getItem(BORRADOR_EVIDENCIA_KEY);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.fichaId === fichaId && Array.isArray(parsed.fotos) && parsed.fotos.length > 0) {
-          return parsed;
-        }
-      } catch {}
-      return null;
-    }
-
     const inputFechaPase = document.getElementById("fechaPaseLista");
     inputFechaPase.value = fechaSeleccionada;
 
@@ -1455,17 +1463,12 @@
       }
 
       if (esCambioLocal && rutaNube) {
-        set(rutaNube, sanitizarParaGuardar(db))
-          .then(() => {
-            if (syncStatusEl) syncStatusEl.textContent = "Nube sincronizada ✓";
-          })
-          .catch((err) => {
-            console.error("Error sincronizando en nube:", err);
-          });
+        set(rutaNube, sanitizarParaGuardar(db)).catch((err) => {
+          console.error("Error sincronizando en nube:", err);
+        });
       }
     }
 
-    const META_FOTOS_MINIMA = 3;
     const fichasNotificadasEnJornada = new Set();
     let ultimaFirmaRemotaNotificada = "";
 
@@ -1585,10 +1588,6 @@
     if (rutaNube) {
       onValue(rutaNube, (snapshot) => {
         if (snapshot.exists()) {
-          // Evita que una llegada remota borre cambios locales mientras el modal está abierto
-          if (fichaActivaModal && document.getElementById("modalEvidencia")?.classList.contains("open")) {
-            return;
-          }
           const datosNube = normalizarDatos(snapshot.val());
           const firmaActual = (datosNube.fichas || [])
             .map(f => {
@@ -1688,25 +1687,20 @@
                   </select>
                 </div>
 
-                ${
-                  !f.noParticipa
-                    ? `
-                      <div class="status-note" style="color:${metaCumplida ? "#4ade80" : "#7dd3fc"};">
-                        ${metaCumplida
-                          ? `✅ Meta completada (${evMeta.opcionesCubiertas}/${evMeta.totalOpciones} opciones · ${totalFotos} fotos)`
-                          : `Opciones: ${evMeta.opcionesCubiertas}/${evMeta.totalOpciones} cubiertas (${totalFotos} fotos)`}
-                      </div>
-                      <div class="meta-progreso-bar">
-                        <div class="meta-progreso-fill" style="width:${pctMeta}%;"></div>
-                      </div>
-                    `
-                    : ""
-                }
+                <div class="status-note" style="color:${metaCumplida ? "#4ade80" : "#7dd3fc"};">
+                  ${metaCumplida
+                    ? `✅ Meta completada (${evMeta.opcionesCubiertas}/${evMeta.totalOpciones} opciones · ${totalFotos} fotos)`
+                    : `Opciones: ${evMeta.opcionesCubiertas}/${evMeta.totalOpciones} cubiertas (${totalFotos} fotos)`}
+                </div>
+                <div class="meta-progreso-bar">
+                  <div class="meta-progreso-fill" style="width:${pctMeta}%;"></div>
+                </div>
+
                 ${
                   totalFotos > 0
                     ? `
                       <div class="thumbs-grid">
-                        ${f.fotos.slice(0, 6).map(src => `<img src="${src}" alt="Evidencia de ${f.nombre}" />`).join("")}
+                        ${f.fotos.slice(0, 4).map(src => `<img src="${src}" alt="Evidencia de ${f.nombre}" />`).join("")}
                       </div>
                     `
                     : ""
@@ -1979,7 +1973,7 @@
         contextoCaptura = null;
         return;
       }
-      const comprimida = await comprimirImagenAsync(file, 520, 0.45);
+      const comprimida = await comprimirImagenAsync(file, 560, 0.48);
       const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
       const ctx = { ...contextoCaptura };
       contextoCaptura = null;
@@ -1996,7 +1990,7 @@
         contextoCaptura = null;
         return;
       }
-      const comprimida = await comprimirImagenAsync(file, 520, 0.45);
+      const comprimida = await comprimirImagenAsync(file, 560, 0.48);
       const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
       const ctx = { ...contextoCaptura };
       contextoCaptura = null;
@@ -2128,7 +2122,6 @@
       renderPaseLista();
     };
 
-    // --- PROTECCIÓN DE TARJETAS DE PARTICIPANTES ---
     let fichaPendienteDesbloqueo = null;
 
     function solicitarAccesoTarjeta(id) {
@@ -2284,7 +2277,6 @@
         fichaActivaModal.turnoIslaKey = selEl.value;
       }
       renderChecklistModal();
-      guardarBorradorModal();
     };
 
     window.tomarFotoPunto = function (puntoId) {
@@ -2304,59 +2296,79 @@
         return;
       }
 
-      guardarBorradorModal();
-      puntoCapturaEvidencia = {
+      guardarPuntoCapturaRespaldo({
         id: item.id,
         nombre: item.nombre,
         maxFotos: item.maxFotos,
         turnoIslaTitulo: cfg.titulo,
         fichaId: fichaActivaModal ? fichaActivaModal.id : null
-      };
+      });
+
+      const contador = document.getElementById("contadorFotosModal");
+      if (contador) contador.textContent = `Abriendo cámara para ${item.nombre}...`;
+
       inputCamaraEvidencia.value = "";
       inputCamaraEvidencia.click();
     };
 
     inputCamaraEvidencia.addEventListener("change", async function (e) {
       const file = e.target.files && e.target.files[0];
-      const capturaActiva = puntoCapturaEvidencia;
-      puntoCapturaEvidencia = null;
-      e.target.value = "";
+      const puntoActivo = obtenerPuntoCapturaRespaldo();
 
-      if (!file || !capturaActiva) return;
+      if (!file) {
+        guardarPuntoCapturaRespaldo(null);
+        actualizarPreviewModal();
+        return;
+      }
 
-      if (!fichaActivaModal && capturaActiva.fichaId !== null && capturaActiva.fichaId !== undefined) {
-        fichaActivaModal = db.fichas.find(x => x.id === capturaActiva.fichaId) || null;
-        if (fichaActivaModal) {
-          const borr = leerBorradorModal(fichaActivaModal.id);
-          if (borr) fotosTemporalesModal = [...borr.fotos];
-          document.getElementById("modalEvidencia")?.classList.add("open");
+      const puntoSeguro = puntoActivo || {
+        id: "cuarto_elec",
+        nombre: "Cuarto eléctrico",
+        maxFotos: 5,
+        turnoIslaTitulo: "Turno vespertino isla A",
+        fichaId: fichaActivaModal ? fichaActivaModal.id : null
+      };
+
+      if (!fichaActivaModal && puntoSeguro.fichaId !== null && puntoSeguro.fichaId !== undefined) {
+        const encontrada = db.fichas.find(x => x.id === puntoSeguro.fichaId);
+        if (encontrada) {
+          abrirModal(encontrada.id);
         }
       }
 
-      const cantActual = contarFotosDePunto(capturaActiva.id);
-      if (cantActual >= capturaActiva.maxFotos) {
-        alert(`Ya alcanzaste el límite de ${capturaActiva.maxFotos} fotos para "${capturaActiva.nombre}".`);
+      const contador = document.getElementById("contadorFotosModal");
+      if (contador) contador.textContent = `Procesando foto de ${puntoSeguro.nombre}...`;
+
+      const cantActual = contarFotosDePunto(puntoSeguro.id);
+      if (cantActual >= puntoSeguro.maxFotos) {
+        alert(`Ya alcanzaste el límite de ${puntoSeguro.maxFotos} fotos para "${puntoSeguro.nombre}".`);
+        guardarPuntoCapturaRespaldo(null);
+        actualizarPreviewModal();
         return;
       }
 
       const fechaHoraStr = obtenerFechaHoraEstampada();
-      const etiqueta = `${capturaActiva.turnoIslaTitulo} · ${capturaActiva.nombre}`;
-      const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 520, 0.45);
+      const etiqueta = `${puntoSeguro.turnoIslaTitulo} · ${puntoSeguro.nombre}`;
+      const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
 
       if (!comprimidaEstampada) {
-        alert("No se pudo procesar la foto. Intenta tomarla de nuevo.");
+        alert("No se pudo leer la foto tomada. Intenta tomarla de nuevo.");
+        guardarPuntoCapturaRespaldo(null);
+        renderChecklistModal();
+        actualizarPreviewModal();
         return;
       }
 
       fotosTemporalesModal.push({
         src: comprimidaEstampada,
         fechaHora: fechaHoraStr,
-        puntoId: capturaActiva.id,
-        puntoNombre: capturaActiva.nombre,
-        maxFotos: capturaActiva.maxFotos
+        puntoId: puntoSeguro.id,
+        puntoNombre: puntoSeguro.nombre,
+        maxFotos: puntoSeguro.maxFotos
       });
 
-      guardarBorradorModal();
+      guardarPuntoCapturaRespaldo(null);
+      e.target.value = "";
       renderChecklistModal();
       actualizarPreviewModal();
     });
@@ -2364,7 +2376,6 @@
     window.eliminarFotoIndividualModal = function (index) {
       if (index < 0 || index >= fotosTemporalesModal.length) return;
       fotosTemporalesModal.splice(index, 1);
-      guardarBorradorModal();
       renderChecklistModal();
       actualizarPreviewModal();
     };
@@ -2391,7 +2402,6 @@
     window.limpiarFotosModal = function () {
       if (!confirm("¿Quitar todas las fotos de esta tarjeta?")) return;
       fotosTemporalesModal = [];
-      limpiarBorradorModal();
       renderChecklistModal();
       actualizarPreviewModal();
     };
@@ -2400,7 +2410,6 @@
       fichaActivaModal = db.fichas.find(x => x.id === id);
       if (!fichaActivaModal) return;
 
-      const borrador = leerBorradorModal(fichaActivaModal.id);
       const detallePrevio = Array.isArray(fichaActivaModal.fotosDetalle) && fichaActivaModal.fotosDetalle.length
         ? fichaActivaModal.fotosDetalle
         : (Array.isArray(fichaActivaModal.fotos)
@@ -2413,15 +2422,15 @@
               }))
             : []);
 
-      fotosTemporalesModal = borrador ? [...borrador.fotos] : [...detallePrevio];
+      fotosTemporalesModal = [...detallePrevio];
 
       const selEl = document.getElementById("selectTurnoIslaModal");
       if (selEl) {
-        selEl.value = (borrador && borrador.turnoIslaKey) || fichaActivaModal.turnoIslaKey || (fichaActivaModal.turno === "Vespertino" ? "vespertino_a" : "matutino_a");
+        selEl.value = fichaActivaModal.turnoIslaKey || (fichaActivaModal.turno === "Vespertino" ? "vespertino_a" : "matutino_a");
       }
 
       document.getElementById("modalTitulo").textContent = `Evidencia de ${fichaActivaModal.nombre}`;
-      document.getElementById("inputNota").value = (borrador && borrador.nota !== undefined) ? borrador.nota : (fichaActivaModal.nota || "");
+      document.getElementById("inputNota").value = fichaActivaModal.nota || "";
       renderChecklistModal();
       actualizarPreviewModal();
       document.getElementById("modalEvidencia").classList.add("open");
@@ -2430,7 +2439,7 @@
     window.cerrarModal = function () {
       fichaActivaModal = null;
       fotosTemporalesModal = [];
-      puntoCapturaEvidencia = null;
+      guardarPuntoCapturaRespaldo(null);
       document.getElementById("modalEvidencia").classList.remove("open");
     };
 
@@ -2441,7 +2450,7 @@
     window.guardarEvidencia = function () {
       if (!fichaActivaModal) return;
 
-      const fotosFinales = fotosTemporalesModal.map(x => x.src).filter(Boolean);
+      const fotosFinales = fotosTemporalesModal.map(x => x.src);
       const nota = document.getElementById("inputNota").value.trim();
       const ahora = obtenerFechaHoraEstampada();
       const selEl = document.getElementById("selectTurnoIslaModal");
@@ -2449,8 +2458,8 @@
       const cfgTI = CHECKLIST_POR_TURNO_ISLA[claveTI] || CHECKLIST_POR_TURNO_ISLA.matutino_a;
 
       const targetFicha = db.fichas.find(x => x.id === fichaActivaModal.id) || fichaActivaModal;
-      targetFicha.fotos = [...fotosFinales];
-      targetFicha.fotosDetalle = fotosTemporalesModal.map(x => ({ ...x }));
+      targetFicha.fotos = fotosFinales;
+      targetFicha.fotosDetalle = [...fotosTemporalesModal];
       targetFicha.turnoIslaKey = claveTI;
       targetFicha.area = cfgTI.titulo;
       targetFicha.nota = nota;
@@ -2467,7 +2476,7 @@
           area: targetFicha.area,
           nota,
           hora: ahora,
-          fotos: [...fotosFinales]
+          fotos: fotosFinales
         });
       }
 
@@ -2475,20 +2484,17 @@
         Notification.requestPermission().catch(() => {});
       }
 
-      limpiarBorradorModal();
       guardarYRefrescar(true);
-
       const idGuardado = targetFicha.id;
       const nombreGuardado = targetFicha.nombre;
       const areaGuardada = targetFicha.area;
       const cantGuardada = fotosFinales.length;
       const horaGuardada = ahora;
-      const evGuardado = evaluarMetaChecklistFicha(targetFicha);
-
       cerrarModal();
       renderTablero(false);
       renderPanelEncargada();
 
+      const evGuardado = evaluarMetaChecklistFicha(targetFicha);
       if (evGuardado.metaCumplida) {
         const claveM = `${idGuardado}_${evGuardado.claveTI}_META_OK_${horaGuardada}`;
         fichasNotificadasEnJornada.add(claveM);
@@ -2544,9 +2550,10 @@
       const fechaHoraStr = obtenerFechaHoraEstampada();
       const tipoVal = document.getElementById("quejaTipo")?.value || "limpieza";
       const etiqueta = `QUEJA (${tipoVal.toUpperCase()})`;
-      const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 520, 0.45);
-      if (!comprimida) return;
-      fotosQuejaTemporales.push({ src: comprimida, fechaHora: fechaHoraStr });
+      const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
+      if (comprimida) {
+        fotosQuejaTemporales.push({ src: comprimida, fechaHora: fechaHoraStr });
+      }
       e.target.value = "";
       actualizarPreviewQueja();
     });
@@ -2783,7 +2790,6 @@
       return huboCambios;
     }
 
-    // --- MODO ADMINISTRADOR OCULTO (7 TOQUES + CONTRASEÑA PROPIA DEL ADMIN) ---
     const SESSION_ENCARGADA_KEY = "faro_santander_admin_activo_v29";
     let esEncargadaActiva = sessionStorage.getItem(SESSION_ENCARGADA_KEY) === "1";
 
