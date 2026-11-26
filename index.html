@@ -71,31 +71,6 @@
       color: #e0f2fe;
     }
 
-    .day-banner {
-      margin-top: 10px;
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 0.84rem;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .day-active {
-      background: rgba(14, 165, 233, 0.2);
-      border: 1px solid #38bdf8;
-      color: #e0f2fe;
-    }
-
-    .day-rest {
-      background: rgba(148, 163, 184, 0.15);
-      border: 1px solid #475569;
-      color: #cbd5e1;
-    }
-
     main {
       padding: 14px;
       max-width: 900px;
@@ -112,10 +87,16 @@
 
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       margin-top: 10px;
       text-align: center;
+    }
+
+    @media (min-width: 520px) {
+      .stats-row {
+        grid-template-columns: repeat(4, 1fr);
+      }
     }
 
     .stats-row-3 {
@@ -182,6 +163,11 @@
       cursor: pointer;
       color: #fff;
       background: var(--accent);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     button.secondary {
@@ -284,7 +270,7 @@
       gap: 8px;
     }
 
-    select, input[type="text"], input[type="date"], textarea {
+    select, input[type="text"], input[type="password"], input[type="date"], textarea {
       width: 100%;
       background: var(--card-2);
       color: var(--text);
@@ -313,21 +299,6 @@
       height: 62px;
       object-fit: cover;
       border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    .galeria-thumbs {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .galeria-thumbs img {
-      width: 100%;
-      height: 95px;
-      object-fit: cover;
-      border-radius: 9px;
       border: 1px solid var(--border);
     }
 
@@ -459,6 +430,19 @@
       object-fit: cover;
       display: block;
     }
+    .foto-del-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(220, 38, 38, 0.92);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
     .foto-stamp-caption {
       font-size: 0.66rem;
       color: #cbd5e1;
@@ -499,6 +483,35 @@
       border-color: #38bdf8;
       color: #f8fafc;
     }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      margin-top: 8px;
+    }
+    .admin-table th, .admin-table td {
+      border: 1px solid var(--border);
+      padding: 7px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .admin-table th {
+      background: var(--card-2);
+      color: #bae6fd;
+      font-weight: 800;
+    }
+    .lock-pill {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      background: rgba(14, 165, 233, 0.14);
+      border: 1px solid #0284c7;
+      color: #bae6fd;
+    }
   </style>
 </head>
 <body>
@@ -507,7 +520,7 @@
     <div class="brand-sub">Estación G500 · 6 cajeros · Limpieza Mié/Dom y Pase de Lista diario</div>
     <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:8px;">
       <span id="syncStatus" class="sync-pill" style="margin-top:0;">Nube y respaldo local activos</span>
-      <span id="badgeEncargadaActiva" style="display:none; background:rgba(22,163,74,0.22); border:1px solid #4ade80; color:#dcfce7; font-size:0.74rem; font-weight:800; padding:4px 10px; border-radius:999px;">ENCARGADOS ACTIVOS (control exclusivo)</span>
+      <span id="badgeEncargadaActiva" style="display:none; background:rgba(22,163,74,0.22); border:1px solid #4ade80; color:#dcfce7; font-size:0.74rem; font-weight:800; padding:4px 10px; border-radius:999px;">MODO ADMINISTRADOR ACTIVO</span>
     </div>
   </header>
 
@@ -587,41 +600,87 @@
       <div id="gridPaseLista" class="grid-6"></div>
     </section>
 
-    <!-- VISTA ENCARGADA: CONTROL EXCLUSIVO DE CALIFICACIÓN, COMENTARIOS Y ASISTENCIA -->
+    <!-- VISTA OCULTA ADMINISTRADOR: TODO EN UNA SOLA PANTALLA (7 TOQUES + CONTRASEÑA) -->
     <section id="view-encargada" class="section-view">
-      <div class="summary-box">
+      <div class="summary-box" style="border-color:#38bdf8;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-          <strong>Panel de los Encargados — Asistencia, Calificación y Comentarios</strong>
-          <span id="estadoEncargadaPanel" class="badge badge-descanso">SOLO LECTURA</span>
+          <strong>Panel Oculto de Administrador — Vista General</strong>
+          <span id="estadoEncargadaPanel" class="badge badge-verde">ADMINISTRADOR ACTIVO</span>
         </div>
         <p class="meta-small" style="margin-top:6px;">
-          Solo los encargados con su clave de acceso pueden publicar comentarios, calificar las fotos y administrar el control. Los demás compañeros solo pueden consultar lo publicado.
+          Vista unificada: revisa en esta misma pantalla quiénes asistieron, quiénes hicieron limpieza, qué fotos subió cada compañero y califica o administra todo.
         </p>
         <div class="toolbar">
-          <button type="button" id="btnPanelAccesoEncargada" class="success" onclick="toggleModoEncargada()">Entrar como Encargados (PIN)</button>
-          <button type="button" id="btnPanelSalirEncargada" class="secondary" style="display:none;" onclick="cerrarSesionEncargada()">Cerrar sesión de Encargados</button>
+          <button type="button" class="secondary" onclick="cambiarVista('tablero')">Volver al Tablero</button>
+          <button type="button" class="danger" onclick="cerrarSesionEncargada()">Salir y ocultar panel Admin</button>
         </div>
       </div>
 
+      <!-- 1. TABLA RESUMEN GENERAL DE TODO (ASISTENCIA + LIMPIEZA + FOTOS + CALIFICACIÓN) -->
       <div class="summary-box">
-        <strong>Resumen de quiénes sí fueron y quiénes trabajaron</strong>
-        <div class="meta-small">Consulta por fecha y turno quiénes marcaron "Trabajó", quiénes tienen foto de entrada/salida y quiénes faltaron o descansaron.</div>
-        <div class="toolbar" style="margin-top:8px;">
-          <input type="date" id="fechaControlEncargada" style="width:auto;" />
-          <select id="turnoControlEncargada" style="width:auto;">
-            <option value="TODOS">Todos los horarios (Mañana / Tarde / Noche)</option>
-            <option value="Manana">Mañana</option>
-            <option value="Tarde">Tarde</option>
-            <option value="Noche">Noche</option>
-          </select>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <strong>1. Resumen Completo del Día (Asistencias + Limpieza)</strong>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <input type="date" id="fechaControlEncargada" style="width:auto;" />
+            <select id="turnoControlEncargada" style="width:auto;">
+              <option value="TODOS">Todos los turnos</option>
+              <option value="Manana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+              <option value="Noche">Noche</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto; margin-top:8px;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Compañero</th>
+                <th>Asistencia (Turnos)</th>
+                <th>Limpieza Hoy</th>
+                <th>Fotos</th>
+                <th>Calificación</th>
+              </tr>
+            </thead>
+            <tbody id="tablaResumenTotalAdmin"></tbody>
+          </table>
         </div>
         <div id="resumenQuienesTrabajaron" style="margin-top:12px;"></div>
       </div>
 
+      <!-- 2. REVISIÓN, CALIFICACIÓN Y BORRADO DE FOTOS DE LIMPIEZA -->
       <div class="summary-box">
-        <strong>Calificación y comentarios exclusivos de los Encargados (Fotos de Limpieza)</strong>
-        <div class="meta-small">Califica del 1 al 5 y escribe observaciones exclusivas en cada ficha con evidencia.</div>
+        <strong>2. Evidencias de Limpieza, Calificación y Control de Fotos</strong>
+        <div class="meta-small">Como administrador puedes calificar del 1 al 5, dejar comentarios, quitar fotos mal tomadas o reiniciar una tarjeta si hace falta.</div>
         <div id="listaCalificacionEncargada" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- 3. SEGURIDAD: CONTRASENA DEL ADMINISTRADOR Y CLAVES DE PARTICIPANTES -->
+      <div class="summary-box" style="border-color:#0ea5e9;">
+        <strong>3. Contraseña de Administrador y Claves de Tarjetas</strong>
+        <p class="meta-small" style="margin-top:4px;">
+          El administrador controla su propia contraseña y las claves de cada participante para que nadie suba ni borre fotos en tarjetas ajenas.
+        </p>
+
+        <div class="galeria-card" style="margin-top:10px;">
+          <strong style="font-size:0.9rem;">Cambiar contraseña maestra del Administrador</strong>
+          <div class="meta-small">Si aún no la has cambiado, la inicial es <strong>1985</strong>. Cámbiala aquí para que solo tú la tengas.</div>
+          <div class="campos" style="margin-top:8px;">
+            <input type="password" id="nuevoPinAdminInput" maxlength="16" placeholder="Nueva contraseña de Administrador (mín. 4 caracteres)" />
+            <input type="password" id="confirmarPinAdminInput" maxlength="16" placeholder="Confirmar nueva contraseña de Administrador" />
+            <button type="button" class="success" onclick="cambiarContrasenaAdmin()">Guardar nueva contraseña de Administrador</button>
+          </div>
+        </div>
+
+        <div class="galeria-card" style="margin-top:10px;">
+          <strong style="font-size:0.9rem;">Claves individuales de las 6 tarjetas (Protección de fotos)</strong>
+          <div class="meta-small">
+            Cada participante usa su clave para subir o quitar fotos <strong>solo en su propia tarjeta</strong>. Si dejas un campo vacío, esa tarjeta pide clave para protegerse.
+          </div>
+          <div id="listaClavesParticipantesAdmin" class="campos" style="margin-top:10px;"></div>
+          <div class="ficha-actions">
+            <button type="button" class="success" onclick="guardarClavesParticipantesAdmin()">Guardar claves de participantes</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -716,9 +775,8 @@
         <p style="margin:6px 0; color:#cbd5e1;">
           • Abajo en la barra, apachurra <strong>Pase de Lista</strong>.<br/>
           • Arriba elige la <strong>fecha</strong> y apachurra tu horario: <strong>Mañana</strong>, <strong>Tarde</strong> o <strong>Noche</strong>.<br/>
-          • Busca tu ficha y apachurra <strong>Trabajó</strong>: se abrirá la cámara para tu foto de <strong>Entrada</strong>.<br/>
-          • En la vista previa, si se ve clara y bien la hora, apachurra <strong>Aceptar foto</strong> (una vez aceptada ya no se puede corregir). Si salió borrosa o mal, apachurra <strong>Tomar otra</strong>.<br/>
-          • Al terminar tu turno, apachurra <strong>Salida (foto)</strong>, toma la foto de <strong>Salida</strong> y apachurra <strong>Aceptar foto</strong>.<br/>
+          • Busca tu ficha y apachurra <strong>Entrada</strong> para tomar tu foto con fecha y hora.<br/>
+          • Al terminar tu turno, apachurra <strong>Salida</strong> para registrar tu salida.<br/>
           • Si hoy descansaste, apachurra <strong>Descanso</strong>.
         </p>
       </div>
@@ -727,23 +785,13 @@
         <h3>3. Limpieza y Mantenimiento (Miércoles y Domingos)</h3>
         <p style="margin:6px 0; color:#cbd5e1;">
           • Abajo en la barra, apachurra <strong>Limpieza (6)</strong>.<br/>
-          • Si hoy <strong>no</strong> te toca participar, apachurra <strong>Hoy no participa en la limpieza</strong> (quedará en gris y no contará en rojo).<br/>
-          • Si <strong>sí</strong> te toca: elige tu <strong>Turno Matutino</strong> o <strong>Turno Vespertino</strong> y tu <strong>Área</strong>, luego apachurra <strong>Subir evidencia (1-20)</strong>.<br/>
-          • Selecciona o toma de <strong>1 a 20 fotos</strong>, escribe un comentario si gustas y apachurra <strong>Guardar y poner en verde</strong>.<br/>
-          • Si no subes evidencia, queda pendiente y al cierre pasa a <strong>rojo</strong>.
+          • Cada tarjeta está protegida con clave para que <strong>nadie pueda subir o borrar fotos de otra persona</strong>.<br/>
+          • Si <strong>sí</strong> te toca: elige tu turno y área, apachurra <strong>Subir / Editar fotos</strong>, escribe tu clave de tarjeta y toma tus fotos desde la cámara.
         </p>
       </div>
 
       <div class="rol-card">
-        <h3>4. Panel de Encargados y cierre automático</h3>
-        <p style="margin:6px 0; color:#cbd5e1;">
-          • En <strong>Encargados</strong> puedes consultar quiénes trabajaron y ver calificaciones/comentarios publicados. Los encargados entran con su PIN para calificar y comentar.<br/>
-          • A las <strong>00:00</strong> se aplica el cierre automático del día y al cambiar de día se prepara la nueva jornada.
-        </p>
-      </div>
-
-      <div class="rol-card">
-        <h3>5. Regla General y Rol de Áreas</h3>
+        <h3>4. Regla General y Rol de Áreas</h3>
         <p style="margin:6px 0; color:#cbd5e1;">
           • <strong>Regla general:</strong> cada turno debe entregar su área limpia y ordenada al terminar labores (islas, bombas, pasillos, jardineras y áreas perimetrales).<br/>
           • <strong>Turno Matutino:</strong> Isla A, Bocatomas rojas, Cuarto de basura, Isla B, Bocatomas verdes.<br/>
@@ -770,23 +818,44 @@
     </div>
   </div>
 
-  <!-- MODAL ACCESO EXCLUSIVO ENCARGADA -->
+  <!-- MODAL ACCESO OCULTO ADMINISTRADOR (7 TOQUES) -->
   <div id="modalPinEncargada" class="modal-backdrop">
     <div class="modal-box">
-      <h3 style="margin-top:0;">Acceso exclusivo — Encargados</h3>
+      <h3 style="margin-top:0;">Acceso Oculto — Administrador</h3>
       <p style="font-size:0.84rem; color:#cbd5e1; margin-top:4px;">
-        Ingresa tu clave (PIN) de encargados para poder publicar comentarios, calificar fotos y revisar el control. (PIN de encargados: <strong>1985</strong>).
+        Ingresa la contraseña del Administrador para entrar al panel escondido de control total.
       </p>
       <div class="campos">
         <label style="font-size:0.82rem; color:#cbd5e1;">
-          PIN de Encargados:
-          <input type="password" id="inputPinEncargada" inputmode="numeric" maxlength="10" placeholder="Escribe tu PIN" style="margin-top:6px;" />
+          Contraseña de Administrador:
+          <input type="password" id="inputPinEncargada" maxlength="16" placeholder="Escribe la contraseña" style="margin-top:6px;" />
         </label>
         <div id="errorPinEncargada" class="meta-small" style="color:#f87171;"></div>
       </div>
       <div class="ficha-actions" style="margin-top:14px;">
-        <button type="button" class="success" onclick="validarPinEncargada()">Desbloquear control</button>
+        <button type="button" class="success" onclick="validarPinEncargada()">Entrar como Administrador</button>
         <button type="button" class="secondary" onclick="cerrarModalPinEncargada()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CLAVE DE TARJETA DE PARTICIPANTE (PARA SUBIR / QUITAR FOTOS) -->
+  <div id="modalClaveTarjeta" class="modal-backdrop">
+    <div class="modal-box">
+      <h3 id="tituloClaveTarjeta" style="margin-top:0;">Tarjeta protegida</h3>
+      <p id="subtituloClaveTarjeta" style="font-size:0.84rem; color:#cbd5e1; margin-top:4px;">
+        Ingresa la clave de esta tarjeta (o la contraseña de Administrador) para subir o quitar fotos.
+      </p>
+      <div class="campos">
+        <label style="font-size:0.82rem; color:#cbd5e1;">
+          Clave de acceso:
+          <input type="password" id="inputClaveTarjeta" maxlength="16" placeholder="Escribe tu clave" style="margin-top:6px;" />
+        </label>
+        <div id="errorClaveTarjeta" class="meta-small" style="color:#f87171;"></div>
+      </div>
+      <div class="ficha-actions" style="margin-top:14px;">
+        <button type="button" class="success" onclick="validarClaveTarjeta()">Desbloquear tarjeta</button>
+        <button type="button" class="secondary" onclick="cerrarModalClaveTarjeta()">Cancelar</button>
       </div>
     </div>
   </div>
@@ -817,7 +886,7 @@
         <div id="previewGridModal" class="thumbs-grid"></div>
 
         <div class="ficha-actions" style="margin-top:6px;">
-          <button type="button" class="secondary" style="padding:6px 10px; font-size:0.78rem;" onclick="limpiarFotosModal()">Quitar fotos tomadas</button>
+          <button type="button" class="secondary" style="padding:6px 10px; font-size:0.78rem;" onclick="limpiarFotosModal()">Quitar todas las fotos de esta tarjeta</button>
         </div>
         <label style="font-size:0.82rem; color:#cbd5e1;">
           Comentario rápido (opcional):
@@ -932,40 +1001,48 @@
       });
     }
 
-    function capturarYEstamparFotoAsync(file, etiquetaArriba, fechaHoraStr, maxWidth = 900, quality = 0.72) {
+    function capturarYEstamparFotoAsync(file, etiquetaArriba, fechaHoraStr, maxWidth = 640, quality = 0.52) {
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = function (ev) {
           const img = new Image();
           img.onload = function () {
-            const scale = Math.min(1, maxWidth / img.width);
-            const canvas = document.createElement("canvas");
-            canvas.width = Math.max(1, Math.round(img.width * scale));
-            canvas.height = Math.max(1, Math.round(img.height * scale));
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const renderConTamano = (wMax, q) => {
+              const scale = Math.min(1, wMax / img.width);
+              const canvas = document.createElement("canvas");
+              canvas.width = Math.max(1, Math.round(img.width * scale));
+              canvas.height = Math.max(1, Math.round(img.height * scale));
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-            const barHeight = Math.max(44, Math.round(canvas.height * 0.085));
-            ctx.fillStyle = "rgba(11, 18, 32, 0.78)";
-            ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
+              const barHeight = Math.max(36, Math.round(canvas.height * 0.085));
+              ctx.fillStyle = "rgba(11, 18, 32, 0.80)";
+              ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
 
-            const fontSize = Math.max(13, Math.round(barHeight * 0.34));
-            ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
-            ctx.fillStyle = "#f8fafc";
-            ctx.textBaseline = "middle";
+              const fontSize = Math.max(11, Math.round(barHeight * 0.34));
+              ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
+              ctx.fillStyle = "#f8fafc";
+              ctx.textBaseline = "middle";
 
-            const textoLinea1 = `${fechaHoraStr}`;
-            const textoLinea2 = etiquetaArriba ? `${etiquetaArriba}` : "Faro Santander";
+              const textoLinea1 = `${fechaHoraStr}`;
+              const textoLinea2 = etiquetaArriba ? `${etiquetaArriba}` : "Faro Santander";
 
-            if (barHeight >= 56) {
-              ctx.fillText(textoLinea2, 12, canvas.height - barHeight * 0.68);
-              ctx.fillStyle = "#7dd3fc";
-              ctx.fillText(textoLinea1, 12, canvas.height - barHeight * 0.28);
-            } else {
-              ctx.fillText(`${textoLinea2} · ${textoLinea1}`, 10, canvas.height - barHeight * 0.5);
+              if (barHeight >= 48) {
+                ctx.fillText(textoLinea2, 10, canvas.height - barHeight * 0.68);
+                ctx.fillStyle = "#7dd3fc";
+                ctx.fillText(textoLinea1, 10, canvas.height - barHeight * 0.28);
+              } else {
+                ctx.fillText(`${textoLinea2} · ${textoLinea1}`, 8, canvas.height - barHeight * 0.5);
+              }
+
+              return canvas.toDataURL("image/jpeg", q);
+            };
+
+            let out = renderConTamano(maxWidth, quality);
+            if (out.length > 95000) {
+              out = renderConTamano(480, 0.42);
             }
-
-            resolve(canvas.toDataURL("image/jpeg", quality));
+            resolve(out);
           };
           img.src = ev.target.result;
         };
@@ -973,7 +1050,7 @@
       });
     }
 
-    const MAX_FOTOS = 20;
+    const MAX_FOTOS = 15;
     const HORARIOS = ["Manana", "Tarde", "Noche"];
     const ETIQUETAS_HORARIO = {
       Manana: "Mañana",
@@ -991,8 +1068,17 @@
     ];
 
     const INTEGRANTES_INICIALES = ["Ana", "Julio", "Alma", "Fátima", "Xochitl", "Karla"];
-    const STORAGE_KEY = "faro_santander_limpieza_v28";
-    const ULTIMA_FECHA_KEY = "faro_santander_ultima_fecha_v28";
+    const CLAVES_DEFAULT_PARTICIPANTES = {
+      "Ana": "1111",
+      "Julio": "2222",
+      "Alma": "3333",
+      "Fátima": "4444",
+      "Xochitl": "5555",
+      "Karla": "6666"
+    };
+    const PIN_ADMIN_DEFAULT = "1985";
+    const STORAGE_KEY = "faro_santander_limpieza_v29";
+    const ULTIMA_FECHA_KEY = "faro_santander_ultima_fecha_v29";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA5lNh2hQkKcIXRzCXSKLhYJxf1vpmYH1w",
@@ -1079,9 +1165,11 @@
             noParticipa: Boolean(f.noParticipa),
             estado: f.estado || (f.noParticipa ? "descanso" : "pendiente"),
             turno: f.turno || (idx < 3 ? "Matutino" : "Vespertino"),
+            turnoIslaKey: f.turnoIslaKey || (f.turno === "Vespertino" ? "vespertino_a" : "matutino_a"),
             area: f.area || AREAS[idx % AREAS.length],
             nota: f.nota || "",
             fotos: extraerFotos(f.fotos, f.foto),
+            fotosDetalle: Array.isArray(f.fotosDetalle) ? f.fotosDetalle : [],
             horaSubida: f.horaSubida || "",
             calificacionEncargada: typeof f.calificacionEncargada === "number" ? f.calificacionEncargada : (Number(f.calificacionEncargada) || 0),
             comentarioEncargada: f.comentarioEncargada || "",
@@ -1149,11 +1237,25 @@
         fotos: extraerFotos(q.fotos, q.foto)
       }));
 
+      const clavesGuardadas = (rawObj.clavesParticipantes && typeof rawObj.clavesParticipantes === "object")
+        ? rawObj.clavesParticipantes
+        : {};
+      const clavesParticipantes = {};
+      INTEGRANTES_INICIALES.forEach((nombre) => {
+        const val = String(clavesGuardadas[nombre] || "").trim();
+        clavesParticipantes[nombre] = val || CLAVES_DEFAULT_PARTICIPANTES[nombre];
+      });
+
+      const adminPassword = String(rawObj.adminPassword || "").trim() || PIN_ADMIN_DEFAULT;
+
       return {
         fichas: fichasNormalizadas,
         evidencias: evidenciasNormalizadas,
         quejas: quejasNormalizadas,
-        paseLista: paseListaNormalizado
+        paseLista: paseListaNormalizado,
+        clavesParticipantes,
+        adminPassword,
+        cierresMedianoche: (rawObj.cierresMedianoche && typeof rawObj.cierresMedianoche === "object") ? rawObj.cierresMedianoche : {}
       };
     }
 
@@ -1180,7 +1282,10 @@
         quejas: [],
         paseLista: {
           [hoyISO]: crearDiaPaseListaVacio()
-        }
+        },
+        clavesParticipantes: { ...CLAVES_DEFAULT_PARTICIPANTES },
+        adminPassword: PIN_ADMIN_DEFAULT,
+        cierresMedianoche: {}
       };
     }
 
@@ -1223,19 +1328,23 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
       } catch (err) {
-        console.warn("LocalStorage lleno, intentando limpiar evidencias antiguas...", err);
         try {
-          db.evidencias = (db.evidencias || []).slice(0, 5);
+          db.evidencias = (db.evidencias || []).slice(0, 2);
+          db.quejas = (db.quejas || []).slice(0, 5);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
         } catch (err2) {
-          alert("El espacio del teléfono está lleno por tantas fotos. Borra fotos anteriores o sube menos fotos.");
+          try {
+            db.evidencias = [];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+          } catch (err3) {
+            console.warn("Almacenamiento local al límite; sincronizando en nube.");
+          }
         }
       }
 
       if (esCambioLocal && rutaNube) {
         set(rutaNube, sanitizarParaGuardar(db)).catch((err) => {
           console.error("Error sincronizando en nube:", err);
-          alert("No se pudo subir a la nube (posiblemente las fotos pesan mucho). Se guardó en este teléfono.");
         });
       }
     }
@@ -1302,6 +1411,8 @@
             <span class="badge ${b.cls}">${b.label}</span>
           </div>
 
+          <div class="lock-pill">🔒 Tarjeta protegida con clave para subir/quitar fotos</div>
+
           <div class="ficha-actions" style="margin-top:8px;">
             <button class="ghost-toggle" style="padding:6px 10px; font-size:0.78rem;" data-action="toggle" data-id="${f.id}">
               ${f.noParticipa ? "Marcar que SÍ participa hoy" : "Hoy no participa en la limpieza"}
@@ -1337,7 +1448,7 @@
                 ${
                   (f.calificacionEncargada || f.comentarioEncargada)
                     ? `<div class="status-note" style="color:#fde047; margin-top:8px; padding:8px; border-radius:8px; background:rgba(15,23,42,0.65); border:1px solid #475569;">
-                        Encargados: ${f.calificacionEncargada ? "★".repeat(f.calificacionEncargada) + "☆".repeat(5 - f.calificacionEncargada) + ` (${f.calificacionEncargada}/5)` : "Sin calificación"}
+                        Administrador: ${f.calificacionEncargada ? "★".repeat(f.calificacionEncargada) + "☆".repeat(5 - f.calificacionEncargada) + ` (${f.calificacionEncargada}/5)` : "Sin calificación"}
                         ${f.comentarioEncargada ? `<div style="color:#f8fafc; font-weight:500; margin-top:4px;">"${f.comentarioEncargada}"</div>` : ""}
                         ${f.fechaCalificacionEncargada ? `<div class="meta-small">Calificado: ${f.fechaCalificacionEncargada}</div>` : ""}
                       </div>`
@@ -1345,7 +1456,7 @@
                 }
 
                 <div class="ficha-actions">
-                  <button class="success" data-action="subir" data-id="${f.id}">${totalFotos > 0 ? "Editar / Agregar fotos" : "Subir evidencia (1-20)"}</button>
+                  <button class="success" data-action="subir" data-id="${f.id}">${totalFotos > 0 ? "🔒 Editar / Quitar / Agregar fotos" : "🔒 Subir evidencia (con clave)"}</button>
                 </div>
               `
           }
@@ -1601,7 +1712,7 @@
         contextoCaptura = null;
         return;
       }
-      const comprimida = await comprimirImagenAsync(file, 850, 0.65);
+      const comprimida = await comprimirImagenAsync(file, 640, 0.52);
       const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
       const ctx = { ...contextoCaptura };
       contextoCaptura = null;
@@ -1618,7 +1729,7 @@
         contextoCaptura = null;
         return;
       }
-      const comprimida = await comprimirImagenAsync(file, 850, 0.65);
+      const comprimida = await comprimirImagenAsync(file, 640, 0.52);
       const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
       const ctx = { ...contextoCaptura };
       contextoCaptura = null;
@@ -1737,7 +1848,7 @@
 
     window.limpiarHorarioActual = function () {
       const etiqueta = ETIQUETAS_HORARIO[horarioSeleccionado];
-      if (!confirm(`¿Limpiar el pase de lista de ${etiqueta} en la fecha ${fechaSeleccionada}?`)) return;
+      if (!confirm(`¿Limpiar el pase de lista de ${etiqueta} (${fechaSeleccionada})?`)) return;
       const registroDia = asegurarRegistroFecha(fechaSeleccionada);
       INTEGRANTES_INICIALES.forEach((nombre) => {
         registroDia[horarioSeleccionado][nombre] = {
@@ -1749,6 +1860,53 @@
       guardarYRefrescar(true);
       renderPaseLista();
     };
+
+    // --- PROTECCIÓN DE TARJETAS DE PARTICIPANTES ---
+    let fichaPendienteDesbloqueo = null;
+
+    function solicitarAccesoTarjeta(id) {
+      const f = db.fichas.find(x => x.id === id);
+      if (!f) return;
+
+      if (esEncargadaActiva) {
+        abrirModal(id);
+        return;
+      }
+
+      fichaPendienteDesbloqueo = f;
+      document.getElementById("tituloClaveTarjeta").textContent = `Tarjeta de ${f.nombre}`;
+      document.getElementById("subtituloClaveTarjeta").textContent =
+        `Ingresa la clave de ${f.nombre} para subir, editar o quitar fotos de esta tarjeta.`;
+      document.getElementById("inputClaveTarjeta").value = "";
+      document.getElementById("errorClaveTarjeta").textContent = "";
+      document.getElementById("modalClaveTarjeta").classList.add("open");
+      setTimeout(() => document.getElementById("inputClaveTarjeta").focus(), 60);
+    }
+
+    window.cerrarModalClaveTarjeta = function () {
+      fichaPendienteDesbloqueo = null;
+      document.getElementById("modalClaveTarjeta").classList.remove("open");
+    };
+
+    window.validarClaveTarjeta = function () {
+      if (!fichaPendienteDesbloqueo) return;
+      const claveIngresada = (document.getElementById("inputClaveTarjeta").value || "").trim();
+      const claveCorrectaTarjeta = (db.clavesParticipantes && db.clavesParticipantes[fichaPendienteDesbloqueo.nombre]) || "";
+      const claveAdmin = db.adminPassword || PIN_ADMIN_DEFAULT;
+
+      if (claveIngresada && (claveIngresada === claveCorrectaTarjeta || claveIngresada === claveAdmin)) {
+        const idTarget = fichaPendienteDesbloqueo.id;
+        cerrarModalClaveTarjeta();
+        abrirModal(idTarget);
+      } else {
+        document.getElementById("errorClaveTarjeta").textContent =
+          "Clave incorrecta. No puedes subir ni quitar fotos en una tarjeta que no es tuya.";
+      }
+    };
+
+    document.getElementById("inputClaveTarjeta").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") validarClaveTarjeta();
+    });
 
     document.getElementById("gridFichas").addEventListener("click", (e) => {
       const btn = e.target.closest("[data-action]");
@@ -1765,7 +1923,7 @@
         }
         renderTablero(true);
       } else if (action === "subir") {
-        abrirModal(id);
+        solicitarAccesoTarjeta(id);
       }
     });
 
@@ -1803,15 +1961,24 @@
     };
 
     window.nuevaJornada = function () {
+      if (!esEncargadaActiva) {
+        alert("Solo el Administrador puede reiniciar toda la jornada (entra tocando 7 veces la pantalla).");
+        return;
+      }
       if (!confirm("¿Reiniciar las 6 fichas para una nueva jornada?")) return;
       db.fichas = db.fichas.map(f => ({
         ...f,
         estado: f.noParticipa ? "descanso" : "pendiente",
         nota: "",
         fotos: [],
-        horaSubida: ""
+        fotosDetalle: [],
+        horaSubida: "",
+        calificacionEncargada: 0,
+        comentarioEncargada: "",
+        fechaCalificacionEncargada: ""
       }));
       renderTablero(true);
+      renderPanelEncargada();
     };
 
     function contarFotosDePunto(puntoId) {
@@ -1859,6 +2026,10 @@
       const item = cfg.items.find(x => x.id === puntoId);
       if (!item) return;
 
+      if (fotosTemporalesModal.length >= MAX_FOTOS) {
+        alert(`Solo se pueden subir hasta ${MAX_FOTOS} fotos por tarjeta.`);
+        return;
+      }
       const cantActual = contarFotosDePunto(item.id);
       if (cantActual >= item.maxFotos) {
         alert(`Ya alcanzaste el límite de ${item.maxFotos} fotos para "${item.nombre}".`);
@@ -1891,7 +2062,7 @@
 
       const fechaHoraStr = obtenerFechaHoraEstampada();
       const etiqueta = `${puntoCapturaEvidencia.turnoIslaTitulo} · ${puntoCapturaEvidencia.nombre}`;
-      const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 900, 0.72);
+      const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 640, 0.52);
 
       fotosTemporalesModal.push({
         src: comprimidaEstampada,
@@ -1907,17 +2078,25 @@
       actualizarPreviewModal();
     });
 
+    window.eliminarFotoIndividualModal = function (index) {
+      if (index < 0 || index >= fotosTemporalesModal.length) return;
+      fotosTemporalesModal.splice(index, 1);
+      renderChecklistModal();
+      actualizarPreviewModal();
+    };
+
     function actualizarPreviewModal() {
       const contador = document.getElementById("contadorFotosModal");
       const aviso = document.getElementById("avisoLimiteModal");
       const grid = document.getElementById("previewGridModal");
 
-      contador.textContent = `Fotos tomadas desde la app: ${fotosTemporalesModal.length}`;
+      contador.textContent = `Fotos tomadas: ${fotosTemporalesModal.length} / ${MAX_FOTOS} (máx. ${MAX_FOTOS})`;
       aviso.textContent = "";
 
       grid.innerHTML = fotosTemporalesModal
         .map((item, i) => `
           <div class="foto-card-item">
+            <button type="button" class="foto-del-btn" onclick="eliminarFotoIndividualModal(${i})" title="Quitar esta foto">✕</button>
             <img src="${item.src}" alt="Foto ${i + 1}" />
             <div class="foto-stamp-caption"><strong>${item.puntoNombre || "Evidencia"}</strong><br/>${item.fechaHora || ""}</div>
           </div>
@@ -1926,6 +2105,7 @@
     }
 
     window.limpiarFotosModal = function () {
+      if (!confirm("¿Quitar todas las fotos de esta tarjeta?")) return;
       fotosTemporalesModal = [];
       renderChecklistModal();
       actualizarPreviewModal();
@@ -1943,7 +2123,7 @@
                 fechaHora: fichaActivaModal.horaSubida || "",
                 puntoId: "general",
                 puntoNombre: fichaActivaModal.area || "Evidencia",
-                maxFotos: 20
+                maxFotos: 15
               }))
             : []);
 
@@ -1974,10 +2154,6 @@
 
     window.guardarEvidencia = function () {
       if (!fichaActivaModal) return;
-      if (!fotosTemporalesModal.length) {
-        alert("Toma al menos 1 foto desde la cámara de la aplicación antes de guardar.");
-        return;
-      }
 
       const fotosFinales = fotosTemporalesModal.map(x => x.src);
       const nota = document.getElementById("inputNota").value.trim();
@@ -1992,24 +2168,27 @@
       targetFicha.turnoIslaKey = claveTI;
       targetFicha.area = cfgTI.titulo;
       targetFicha.nota = nota;
-      targetFicha.horaSubida = ahora;
-      targetFicha.estado = "verde";
+      targetFicha.horaSubida = fotosFinales.length ? ahora : "";
+      targetFicha.estado = fotosFinales.length ? "verde" : "pendiente";
       targetFicha.noParticipa = false;
 
-      if (!Array.isArray(db.evidencias)) db.evidencias = [];
-      db.evidencias.unshift({
-        id: Date.now(),
-        nombre: targetFicha.nombre,
-        turno: targetFicha.turno,
-        area: targetFicha.area,
-        nota,
-        hora: ahora,
-        fotos: fotosFinales
-      });
+      if (fotosFinales.length) {
+        if (!Array.isArray(db.evidencias)) db.evidencias = [];
+        db.evidencias.unshift({
+          id: Date.now(),
+          nombre: targetFicha.nombre,
+          turno: targetFicha.turno,
+          area: targetFicha.area,
+          nota,
+          hora: ahora,
+          fotos: fotosFinales
+        });
+      }
 
       guardarYRefrescar(true);
       cerrarModal();
       renderTablero(false);
+      renderPanelEncargada();
     };
 
     function actualizarPreviewQueja() {
@@ -2049,7 +2228,7 @@
       const fechaHoraStr = obtenerFechaHoraEstampada();
       const tipoVal = document.getElementById("quejaTipo")?.value || "limpieza";
       const etiqueta = `QUEJA (${tipoVal.toUpperCase()})`;
-      const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 900, 0.72);
+      const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 640, 0.52);
       fotosQuejaTemporales.push({ src: comprimida, fechaHora: fechaHoraStr });
       e.target.value = "";
       actualizarPreviewQueja();
@@ -2135,10 +2314,19 @@
     }
 
     window.cambiarVista = function (vista) {
+      if (vista === "encargada" && !esEncargadaActiva) {
+        toggleModoEncargada();
+        return;
+      }
       document.querySelectorAll(".section-view").forEach(s => s.classList.remove("active"));
       document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-      document.getElementById(`view-${vista}`).classList.add("active");
-      document.getElementById(`nav-${vista}`).classList.add("active");
+      const sec = document.getElementById(`view-${vista}`);
+      if (sec) sec.classList.add("active");
+      const nav = document.getElementById(`nav-${vista}`);
+      if (nav) nav.classList.add("active");
+      if (vista === "encargada") {
+        renderPanelEncargada();
+      }
     };
 
     (function setupPWA() {
@@ -2184,7 +2372,11 @@
         estado: f.noParticipa ? "descanso" : "pendiente",
         nota: "",
         fotos: [],
-        horaSubida: ""
+        fotosDetalle: [],
+        horaSubida: "",
+        calificacionEncargada: 0,
+        comentarioEncargada: "",
+        fechaCalificacionEncargada: ""
       }));
       localStorage.setItem(ULTIMA_FECHA_KEY, hoyISO);
       guardarYRefrescar(true);
@@ -2212,10 +2404,6 @@
           renderPaseLista();
         }
       }
-      return false;
-    }
-
-    function horarioEstaCerradoAuto() {
       return false;
     }
 
@@ -2278,8 +2466,8 @@
       return huboCambios;
     }
 
-    const PIN_ENCARGADA = "1985";
-    const SESSION_ENCARGADA_KEY = "faro_santander_encargados_activos_v28";
+    // --- MODO ADMINISTRADOR OCULTO (7 TOQUES + CONTRASEÑA PROPIA DEL ADMIN) ---
+    const SESSION_ENCARGADA_KEY = "faro_santander_admin_activo_v29";
     let esEncargadaActiva = sessionStorage.getItem(SESSION_ENCARGADA_KEY) === "1";
 
     const fechaControlEncargadaEl = document.getElementById("fechaControlEncargada");
@@ -2287,49 +2475,16 @@
     if (fechaControlEncargadaEl) fechaControlEncargadaEl.value = obtenerFechaHoyISO();
 
     function actualizarInterfazEncargada() {
-      const btnHeader = document.getElementById("btnModoEncargada");
       const badgeHeader = document.getElementById("badgeEncargadaActiva");
-      const estadoPanel = document.getElementById("estadoEncargadaPanel");
-      const btnEntrar = document.getElementById("btnPanelAccesoEncargada");
-      const btnSalir = document.getElementById("btnPanelSalirEncargada");
-
-      if (esEncargadaActiva) {
-        if (btnHeader) {
-          btnHeader.textContent = "Encargados activos (salir)";
-          btnHeader.className = "success";
-          btnHeader.style.padding = "5px 11px";
-          btnHeader.style.fontSize = "0.76rem";
-          btnHeader.style.borderRadius = "999px";
-        }
-        if (badgeHeader) badgeHeader.style.display = "inline-block";
-        if (estadoPanel) {
-          estadoPanel.textContent = "ENCARGADOS AUTORIZADOS";
-          estadoPanel.className = "badge badge-verde";
-        }
-        if (btnEntrar) btnEntrar.style.display = "none";
-        if (btnSalir) btnSalir.style.display = "inline-block";
-      } else {
-        if (btnHeader) {
-          btnHeader.textContent = "Modo Encargados: Bloqueado (solo lectura)";
-          btnHeader.className = "ghost-toggle";
-          btnHeader.style.padding = "5px 11px";
-          btnHeader.style.fontSize = "0.76rem";
-          btnHeader.style.borderRadius = "999px";
-        }
-        if (badgeHeader) badgeHeader.style.display = "none";
-        if (estadoPanel) {
-          estadoPanel.textContent = "SOLO LECTURA";
-          estadoPanel.className = "badge badge-descanso";
-        }
-        if (btnEntrar) btnEntrar.style.display = "inline-block";
-        if (btnSalir) btnSalir.style.display = "none";
+      if (badgeHeader) {
+        badgeHeader.style.display = esEncargadaActiva ? "inline-block" : "none";
       }
       renderPanelEncargada();
     }
 
     window.toggleModoEncargada = function () {
       if (esEncargadaActiva) {
-        cerrarSesionEncargada();
+        cambiarVista("encargada");
         return;
       }
       const errEl = document.getElementById("errorPinEncargada");
@@ -2348,26 +2503,87 @@
       const inputEl = document.getElementById("inputPinEncargada");
       const errEl = document.getElementById("errorPinEncargada");
       const pinIngresado = (inputEl ? inputEl.value : "").trim();
-      if (pinIngresado === PIN_ENCARGADA) {
+      const claveAdminActual = db.adminPassword || PIN_ADMIN_DEFAULT;
+
+      if (pinIngresado === claveAdminActual) {
         esEncargadaActiva = true;
         sessionStorage.setItem(SESSION_ENCARGADA_KEY, "1");
         cerrarModalPinEncargada();
         actualizarInterfazEncargada();
-        renderQuejas();
+        cambiarVista("encargada");
       } else if (errEl) {
-        errEl.textContent = "PIN incorrecto. Solo los encargados con el PIN autorizado pueden desbloquear esta función.";
+        errEl.textContent = "Contraseña incorrecta. Acceso exclusivo para el Administrador.";
       }
     };
+
+    document.getElementById("inputPinEncargada").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") validarPinEncargada();
+    });
 
     window.cerrarSesionEncargada = function () {
       esEncargadaActiva = false;
       sessionStorage.removeItem(SESSION_ENCARGADA_KEY);
       actualizarInterfazEncargada();
+      cambiarVista("tablero");
+    };
+
+    window.cambiarContrasenaAdmin = function () {
+      if (!esEncargadaActiva) return;
+      const nueva = (document.getElementById("nuevoPinAdminInput").value || "").trim();
+      const conf = (document.getElementById("confirmarPinAdminInput").value || "").trim();
+      if (nueva.length < 4) {
+        alert("La contraseña debe tener al menos 4 caracteres.");
+        return;
+      }
+      if (nueva !== conf) {
+        alert("Las dos contraseñas no coinciden. Vuelve a escribirlas.");
+        return;
+      }
+      db.adminPassword = nueva;
+      document.getElementById("nuevoPinAdminInput").value = "";
+      document.getElementById("confirmarPinAdminInput").value = "";
+      guardarYRefrescar(true);
+      alert("Contraseña de Administrador actualizada y guardada en la nube. Solo tú la conoces.");
+    };
+
+    window.guardarClavesParticipantesAdmin = function () {
+      if (!esEncargadaActiva) return;
+      if (!db.clavesParticipantes) db.clavesParticipantes = {};
+      INTEGRANTES_INICIALES.forEach((nombre) => {
+        const inp = document.getElementById(`clave-part-${nombre}`);
+        if (inp) {
+          const val = inp.value.trim();
+          if (val.length >= 3) {
+            db.clavesParticipantes[nombre] = val;
+          }
+        }
+      });
+      guardarYRefrescar(true);
+      renderPanelEncargada();
+      alert("Claves individuales de las tarjetas guardadas.");
+    };
+
+    window.borrarFotoAdminDeFicha = function (fichaId, fotoIdx) {
+      if (!esEncargadaActiva) return;
+      const f = db.fichas.find(x => x.id === fichaId);
+      if (!f || !Array.isArray(f.fotos)) return;
+      if (!confirm(`¿Quitar esta foto de la tarjeta de ${f.nombre}?`)) return;
+      f.fotos.splice(fotoIdx, 1);
+      if (Array.isArray(f.fotosDetalle)) {
+        f.fotosDetalle.splice(fotoIdx, 1);
+      }
+      if (f.fotos.length === 0 && !f.noParticipa) {
+        f.estado = "pendiente";
+        f.horaSubida = "";
+      }
+      guardarYRefrescar(true);
+      renderTablero(false);
+      renderPanelEncargada();
     };
 
     window.guardarEvaluacionEncargada = function (fichaId) {
       if (!esEncargadaActiva) {
-        alert("Solo los encargados con sesión activa pueden calificar y publicar comentarios.");
+        alert("Solo el Administrador con sesión activa puede calificar y publicar comentarios.");
         toggleModoEncargada();
         return;
       }
@@ -2393,11 +2609,46 @@
     function renderPanelEncargada() {
       const contAsistencia = document.getElementById("resumenQuienesTrabajaron");
       const contCalif = document.getElementById("listaCalificacionEncargada");
+      const tbodyTabla = document.getElementById("tablaResumenTotalAdmin");
+      const contClaves = document.getElementById("listaClavesParticipantesAdmin");
       if (!contAsistencia || !contCalif) return;
 
       const fechaConsulta = (fechaControlEncargadaEl && fechaControlEncargadaEl.value) || obtenerFechaHoyISO();
       const turnoFiltro = (turnoControlEncargadaEl && turnoControlEncargadaEl.value) || "TODOS";
       const registroDia = asegurarRegistroFecha(fechaConsulta);
+
+      if (tbodyTabla) {
+        tbodyTabla.innerHTML = INTEGRANTES_INICIALES.map((nombre) => {
+          const ficha = db.fichas.find(x => x.nombre === nombre) || {};
+          const turnosInfo = HORARIOS.map((h) => {
+            const reg = registroDia[h]?.[nombre] || { estado: "sin_marcar" };
+            const mapCorto = {
+              trabajo: `✅ ${ETIQUETAS_HORARIO[h]}`,
+              falta: `❌ ${ETIQUETAS_HORARIO[h]}`,
+              descanso: `⚪ ${ETIQUETAS_HORARIO[h]}`,
+              sin_marcar: ""
+            };
+            return mapCorto[reg.estado] || "";
+          }).filter(Boolean).join("<br/>") || "Sin registro";
+
+          const estadoLimpieza = ficha.noParticipa
+            ? "Descanso (no le toca)"
+            : (ficha.estado === "verde" ? "✅ Cumplió (Verde)" : (ficha.estado === "rojo" ? "❌ Sin evidencia (Rojo)" : "⏳ Pendiente"));
+
+          const cantFotos = Array.isArray(ficha.fotos) ? ficha.fotos.length : 0;
+          const calStr = ficha.calificacionEncargada ? `★ ${ficha.calificacionEncargada}/5` : "—";
+
+          return `
+            <tr>
+              <td><strong>${nombre}</strong></td>
+              <td>${turnosInfo}</td>
+              <td>${estadoLimpieza}<br/><span style="color:var(--muted);">${ficha.area || ""}</span></td>
+              <td>${cantFotos} foto(s)</td>
+              <td>${calStr}</td>
+            </tr>
+          `;
+        }).join("");
+      }
 
       const horariosAMostrar = turnoFiltro === "TODOS" ? HORARIOS : [turnoFiltro];
       const trabajaronSet = new Set();
@@ -2447,12 +2698,12 @@
                • Noche trabajaron: ${cierreDia.porHorario?.Noche?.trabajaron?.join(", ") || "Ninguno"}
              </div>
            </div>`
-        : `<div class="meta-small" style="margin-bottom:8px;">Corte automático programado a las 12:00 a.m. (00:00) para resumen de encargados.</div>`;
+        : "";
 
       contAsistencia.innerHTML = `
         ${resumenCorteHtml}
         <div class="status-note" style="margin-bottom:8px;">
-          Sí trabajaron (${listaQuienes.length}): ${listaQuienes.length ? listaQuienes.join(", ") : "Nadie marcado como 'Trabajó' aún"}
+          Sí asistieron (${listaQuienes.length}): ${listaQuienes.length ? listaQuienes.join(", ") : "Nadie marcado como 'Trabajó' aún"}
         </div>
         ${filasHtml.join("")}
       `;
@@ -2468,44 +2719,55 @@
             <div class="meta-small">Turno: ${f.turno} · Área: ${f.area}</div>
             ${
               cantFotos > 0
-                ? `<div class="thumbs-grid">${f.fotos.slice(0, 8).map(src => `<img src="${src}" alt="Foto de ${f.nombre}" />`).join("")}</div>`
+                ? `<div class="thumbs-grid">
+                    ${f.fotos.map((src, idxFoto) => `
+                      <div class="foto-card-item">
+                        <button type="button" class="foto-del-btn" onclick="borrarFotoAdminDeFicha(${f.id}, ${idxFoto})" title="Quitar foto">✕</button>
+                        <img src="${src}" alt="Foto de ${f.nombre}" />
+                      </div>
+                    `).join("")}
+                  </div>`
                 : `<div class="meta-small" style="color:#fbbf24;">Sin fotos subidas todavía</div>`
             }
-            ${
-              esEncargadaActiva
-                ? `
-                  <div class="campos" style="margin-top:10px;">
-                    <label style="font-size:0.78rem; color:#cbd5e1;">
-                      Calificación (1 a 5):
-                      <select id="cal-encargada-${f.id}" style="margin-top:4px;">
-                        <option value="0" ${!f.calificacionEncargada ? "selected" : ""}>Sin calificar</option>
-                        <option value="1" ${f.calificacionEncargada === 1 ? "selected" : ""}>★☆☆☆☆ (1 - Deficiente)</option>
-                        <option value="2" ${f.calificacionEncargada === 2 ? "selected" : ""}>★★☆☆☆ (2 - Regular)</option>
-                        <option value="3" ${f.calificacionEncargada === 3 ? "selected" : ""}>★★★☆☆ (3 - Aceptable)</option>
-                        <option value="4" ${f.calificacionEncargada === 4 ? "selected" : ""}>★★★★☆ (4 - Buena)</option>
-                        <option value="5" ${f.calificacionEncargada === 5 ? "selected" : ""}>★★★★★ (5 - Excelente)</option>
-                      </select>
-                    </label>
-                    <label style="font-size:0.78rem; color:#cbd5e1;">
-                      Comentario exclusivo de la Encargados:
-                      <input type="text" id="com-encargada-${f.id}" value="${(f.comentarioEncargada || "").replace(/"/g, "&quot;")}" placeholder="Escribe tu observación o comentario..." style="margin-top:4px;" />
-                    </label>
-                  </div>
-                  <div class="ficha-actions">
-                    <button type="button" class="success" onclick="guardarEvaluacionEncargada(${f.id})">Publicar calificación y comentario</button>
-                  </div>
-                `
-                : `
-                  <div class="meta-small" style="color:#94a3b8; margin-top:8px;">
-                    <strong>Calificación:</strong> ${f.calificacionEncargada ? "★".repeat(f.calificacionEncargada) + ` (${f.calificacionEncargada}/5)` : "Sin calificar"}<br/>
-                    <strong>Comentario de Encargados:</strong> ${f.comentarioEncargada ? `"${f.comentarioEncargada}"` : "Sin comentario publicado"}
-                  </div>
-                `
-            }
+            <div class="campos" style="margin-top:10px;">
+              <label style="font-size:0.78rem; color:#cbd5e1;">
+                Calificación (1 a 5):
+                <select id="cal-encargada-${f.id}" style="margin-top:4px;">
+                  <option value="0" ${!f.calificacionEncargada ? "selected" : ""}>Sin calificar</option>
+                  <option value="1" ${f.calificacionEncargada === 1 ? "selected" : ""}>★☆☆☆☆ (1 - Deficiente)</option>
+                  <option value="2" ${f.calificacionEncargada === 2 ? "selected" : ""}>★★☆☆☆ (2 - Regular)</option>
+                  <option value="3" ${f.calificacionEncargada === 3 ? "selected" : ""}>★★★☆☆ (3 - Aceptable)</option>
+                  <option value="4" ${f.calificacionEncargada === 4 ? "selected" : ""}>★★★★☆ (4 - Buena)</option>
+                  <option value="5" ${f.calificacionEncargada === 5 ? "selected" : ""}>★★★★★ (5 - Excelente)</option>
+                </select>
+              </label>
+              <label style="font-size:0.78rem; color:#cbd5e1;">
+                Comentario del Administrador:
+                <input type="text" id="com-encargada-${f.id}" value="${(f.comentarioEncargada || "").replace(/"/g, "&quot;")}" placeholder="Escribe tu observación o comentario..." style="margin-top:4px;" />
+              </label>
+            </div>
+            <div class="ficha-actions">
+              <button type="button" class="success" onclick="guardarEvaluacionEncargada(${f.id})">Publicar calificación y comentario</button>
+              <button type="button" class="secondary" onclick="solicitarAccesoTarjeta(${f.id})">Abrir tarjeta de ${f.nombre}</button>
+            </div>
           </div>
         `;
       }).join("");
+
+      if (contClaves) {
+        contClaves.innerHTML = INTEGRANTES_INICIALES.map((nombre) => {
+          const claveActual = (db.clavesParticipantes && db.clavesParticipantes[nombre]) || CLAVES_DEFAULT_PARTICIPANTES[nombre];
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <strong style="min-width:85px; font-size:0.84rem;">${nombre}:</strong>
+              <input type="text" id="clave-part-${nombre}" value="${claveActual}" maxlength="12" placeholder="Clave de ${nombre}" />
+            </div>
+          `;
+        }).join("");
+      }
     }
+
+    window.solicitarAccesoTarjeta = solicitarAccesoTarjeta;
 
     if (fechaControlEncargadaEl) fechaControlEncargadaEl.addEventListener("change", renderPanelEncargada);
     if (turnoControlEncargadaEl) turnoControlEncargadaEl.addEventListener("change", renderPanelEncargada);
@@ -2538,7 +2800,7 @@
       let toquesRapidos = 0;
       let timerToques = null;
       const META_TOQUES = 7;
-      const VENTANA_MS = 1400;
+      const VENTANA_MS = 1600;
 
       document.addEventListener("click", (e) => {
         if (e.target.closest("button, a, input, textarea, select, .modal-backdrop")) {
@@ -2551,8 +2813,6 @@
           toquesRapidos = 0;
           if (typeof toggleModoEncargada === "function") {
             toggleModoEncargada();
-          } else if (typeof cambiarVista === "function") {
-            cambiarVista("encargada");
           }
           return;
         }
