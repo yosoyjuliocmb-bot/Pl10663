@@ -758,10 +758,10 @@
       <div class="summary-box">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
           <strong>Quejas y Reportes — Limpieza, Equipo Dañado o Estado de la Estación</strong>
-          <span class="badge badge-pendiente">CON CÁMARA Y HORA</span>
+          <span class="badge badge-pendiente">SUBIR ARCHIVOS + HORA</span>
         </div>
         <p class="meta-small" style="margin-top:6px;">
-          Reporta a quien no haya hecho su limpieza, alguna cosa dañada o mal estado en la estación. Las fotos se toman directo desde la cámara con fecha y hora estampada.
+          Reporta a quien no haya hecho su limpieza, alguna cosa dañada o mal estado en la estación. Al subir los archivos se estampa la fecha y hora de subida y se detectan fotos repetidas.
         </p>
 
         <div class="campos" style="margin-top:10px;">
@@ -798,10 +798,10 @@
           </label>
 
           <div class="ficha-actions">
-            <button type="button" class="secondary" onclick="tomarFotoQueja()">Tomar foto desde cámara (con fecha y hora)</button>
+            <button type="button" class="secondary" onclick="subirArchivoQueja()">Subir archivos de foto (con fecha y hora)</button>
             <button type="button" class="ghost-toggle" onclick="limpiarFotosQuejaTemp()">Quitar fotos</button>
           </div>
-          <div id="contadorFotosQueja" class="status-note">Fotos de queja tomadas: 0 / 10</div>
+          <div id="contadorFotosQueja" class="status-note">Fotos de queja subidas: 0 / 10</div>
           <div id="previewFotosQueja" class="thumbs-grid"></div>
 
           <div class="ficha-actions" style="margin-top:10px;">
@@ -827,7 +827,7 @@
       <div class="summary-box">
         <strong>Centro de Ayuda — Cómo usar la aplicación paso a paso</strong>
         <p class="meta-small" style="margin-top:6px;">
-          Guía rápida para usar el pase de lista, subir fotos de limpieza y consultar las reglas del turno desde el teléfono.
+          Guía rápida para usar el pase de lista, subir archivos de limpieza y consultar las reglas del turno desde el teléfono.
         </p>
       </div>
 
@@ -844,7 +844,7 @@
         <p style="margin:6px 0; color:#cbd5e1;">
           • Abajo en la barra, apachurra <strong>Pase de Lista</strong>.<br/>
           • Arriba elige la <strong>fecha</strong> y apachurra tu horario: <strong>Mañana</strong>, <strong>Tarde</strong> o <strong>Noche</strong>.<br/>
-          • Busca tu ficha y apachurra <strong>Entrada</strong> para tomar tu foto con fecha y hora.<br/>
+          • Busca tu ficha y apachurra <strong>Entrada</strong> para subir tu archivo con fecha y hora de subida.<br/>
           • Al terminar tu turno, apachurra <strong>Salida</strong> para registrar tu salida.<br/>
           • Si hoy descansaste, apachurra <strong>Descanso</strong>.
         </p>
@@ -855,7 +855,7 @@
         <p style="margin:6px 0; color:#cbd5e1;">
           • Abajo en la barra, apachurra <strong>Limpieza (6)</strong>.<br/>
           • Cada tarjeta está protegida con clave para que <strong>nadie pueda subir o borrar fotos de otra persona</strong>.<br/>
-          • Si <strong>sí</strong> te toca: elige tu turno y área, apachurra <strong>Subir / Editar fotos</strong>, escribe tu clave de tarjeta y toma tus fotos desde la cámara.
+          • Si <strong>sí</strong> te toca: elige tu turno e isla, apachurra <strong>Subir / Editar fotos</strong>, escribe tu clave y sube tus archivos (se estampa fecha/hora y se avisa si repites fotos).
         </p>
       </div>
 
@@ -873,16 +873,17 @@
   <!-- MODAL REVISIÓN INMEDIATA DE FOTO (ENTRADA / SALIDA) -->
   <div id="modalRevisionFoto" class="modal-backdrop">
     <div class="modal-box">
-      <h3 id="revisionTitulo" style="margin-top:0;">Revisar foto tomada</h3>
+      <h3 id="revisionTitulo" style="margin-top:0;">Revisar archivo subido</h3>
       <p id="revisionSubtitulo" style="font-size:0.84rem; color:#cbd5e1; margin-top:4px;">
-        Si se ve clara y bien la hora, pulsa <strong>Aceptar foto</strong> (una vez aceptada ya no se puede corregir). Si se ve borrosa o mal, pulsa <strong>Tomar otra</strong>.
+        Si se ve clara y bien la fecha/hora estampada, pulsa <strong>Aceptar foto</strong> (una vez aceptada ya no se puede corregir). Si no, pulsa <strong>Elegir otro archivo</strong>.
       </p>
+      <div id="revisionAvisoRepetida" class="meta-small" style="color:#fbbf24; font-weight:700;"></div>
       <div style="margin-top:10px;">
-        <img id="revisionImg" src="" alt="Vista previa de foto" style="width:100%; max-height:260px; object-fit:contain; border-radius:12px; border:1px solid var(--border); background:#0b1220;" />
+        <img id="revisionImg" src="" alt="Vista previa de archivo" style="width:100%; max-height:260px; object-fit:contain; border-radius:12px; border:1px solid var(--border); background:#0b1220;" />
       </div>
       <div class="ficha-actions" style="margin-top:14px;">
         <button type="button" class="success" id="btnAceptarFotoRevision">Aceptar foto</button>
-        <button type="button" class="danger" id="btnTomarOtraFotoRevision">Tomar otra</button>
+        <button type="button" class="danger" id="btnTomarOtraFotoRevision">Elegir otro archivo</button>
       </div>
     </div>
   </div>
@@ -945,12 +946,12 @@
         </label>
 
         <div class="meta-small" style="color:#bae6fd;">
-          Toma las fotos directamente desde la cámara de la aplicación. Cada foto llevará impresa su <strong>fecha y hora</strong> automáticamente.
+          Selecciona uno o varios archivos de foto desde tu teléfono. Cada foto se estampa con la <strong>fecha y hora de subida</strong> y se revisa para no repetir fotos ya usadas.
         </div>
 
         <div id="checklistPuntosModal" class="checklist-box"></div>
 
-        <div id="contadorFotosModal" class="status-note">Fotos tomadas: 0</div>
+        <div id="contadorFotosModal" class="status-note">Fotos subidas: 0</div>
         <div id="avisoLimiteModal" class="meta-small" style="color:#fbbf24;"></div>
         <div id="previewGridModal" class="thumbs-grid"></div>
 
@@ -1046,7 +1047,7 @@
     const REVISION_PENDIENTE_KEY = "faro_santander_revision_pendiente_v1";
     let puntoCapturaEvidencia = null;
     let fotosQuejaTemporales = [];
-    let inputActivoCamara = null;
+    let inputActivoArchivo = null;
 
     function guardarPuntoCapturaRespaldo(obj) {
       puntoCapturaEvidencia = obj;
@@ -1090,7 +1091,7 @@
     }
 
     function obtenerFechaHoraEstampada() {
-      return new Date().toLocaleString("es-MX", {
+      return "Subida: " + new Date().toLocaleString("es-MX", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -1098,6 +1099,44 @@
         minute: "2-digit",
         second: "2-digit"
       });
+    }
+
+    async function calcularHuellaArchivo(file) {
+      try {
+        const buffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let h1 = 0x811c9dc5;
+        let h2 = 0x01000193;
+        const step = Math.max(1, Math.floor(bytes.length / 4096));
+        for (let i = 0; i < bytes.length; i += step) {
+          h1 ^= bytes[i];
+          h1 = Math.imul(h1, 0x01000193);
+          h2 = (Math.imul(h2, 31) + bytes[i]) >>> 0;
+        }
+        return `${bytes.length}_${h1.toString(16)}_${h2.toString(16)}`;
+      } catch {
+        return `${file.name || "img"}_${file.size || 0}_${file.lastModified || 0}`;
+      }
+    }
+
+    function esHuellaRepetida(huella, excluyendoHuellasActuales = new Set()) {
+      if (!huella) return false;
+      if (excluyendoHuellasActuales.has(huella)) return true;
+      const usadas = Array.isArray(db.fotosUsadasHashes) ? db.fotosUsadasHashes : [];
+      return usadas.includes(huella);
+    }
+
+    function registrarHuellasUsadas(huellasArr) {
+      if (!Array.isArray(huellasArr) || !huellasArr.length) return;
+      if (!Array.isArray(db.fotosUsadasHashes)) db.fotosUsadasHashes = [];
+      huellasArr.forEach((h) => {
+        if (h && !db.fotosUsadasHashes.includes(h)) {
+          db.fotosUsadasHashes.push(h);
+        }
+      });
+      if (db.fotosUsadasHashes.length > 1500) {
+        db.fotosUsadasHashes = db.fotosUsadasHashes.slice(-1500);
+      }
     }
 
     async function cargarOrigenImagen(file) {
@@ -1160,7 +1199,7 @@
           ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
 
           const barHeight = Math.max(36, Math.round(canvas.height * 0.085));
-          ctx.fillStyle = "rgba(11, 18, 32, 0.80)";
+          ctx.fillStyle = "rgba(11, 18, 32, 0.82)";
           ctx.fillRect(0, canvas.height - barHeight, canvas.width, barHeight);
 
           const fontSize = Math.max(11, Math.round(barHeight * 0.34));
@@ -1194,22 +1233,24 @@
       }
     }
 
-    function dispararCamaraFresco(onArchivoListo, onCancelar) {
+    function dispararSelectorArchivos(onArchivosListos, onCancelar, multiple = true) {
       try {
-        if (inputActivoCamara && inputActivoCamara.parentNode) {
-          inputActivoCamara.parentNode.removeChild(inputActivoCamara);
+        if (inputActivoArchivo && inputActivoArchivo.parentNode) {
+          inputActivoArchivo.parentNode.removeChild(inputActivoArchivo);
         }
       } catch {}
 
       const freshInput = document.createElement("input");
       freshInput.type = "file";
       freshInput.accept = "image/*";
-      freshInput.capture = "environment";
+      if (multiple) {
+        freshInput.multiple = true;
+      }
       freshInput.style.position = "fixed";
       freshInput.style.left = "-9999px";
       freshInput.style.opacity = "0";
       document.body.appendChild(freshInput);
-      inputActivoCamara = freshInput;
+      inputActivoArchivo = freshInput;
 
       let resuelto = false;
 
@@ -1219,19 +1260,19 @@
             freshInput.parentNode.removeChild(freshInput);
           }
         } catch {}
-        if (inputActivoCamara === freshInput) {
-          inputActivoCamara = null;
+        if (inputActivoArchivo === freshInput) {
+          inputActivoArchivo = null;
         }
       };
 
       const manejarSeleccion = async () => {
         if (resuelto) return;
-        const file = freshInput.files && freshInput.files[0];
-        if (!file) return;
+        const files = freshInput.files ? Array.from(freshInput.files) : [];
+        if (!files.length) return;
         resuelto = true;
         limpiar();
-        if (typeof onArchivoListo === "function") {
-          await onArchivoListo(file);
+        if (typeof onArchivosListos === "function") {
+          await onArchivosListos(files);
         }
       };
 
@@ -1241,8 +1282,8 @@
       const onFocusRegreso = () => {
         setTimeout(async () => {
           if (resuelto) return;
-          const file = freshInput.files && freshInput.files[0];
-          if (file) {
+          const files = freshInput.files ? Array.from(freshInput.files) : [];
+          if (files.length) {
             await manejarSeleccion();
           } else {
             resuelto = true;
@@ -1283,8 +1324,8 @@
       "Karla": "6666"
     };
     const PIN_ADMIN_DEFAULT = "1985";
-    const STORAGE_KEY = "faro_santander_limpieza_v29";
-    const ULTIMA_FECHA_KEY = "faro_santander_ultima_fecha_v29";
+    const STORAGE_KEY = "faro_santander_limpieza_v30";
+    const ULTIMA_FECHA_KEY = "faro_santander_ultima_fecha_v30";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA5lNh2hQkKcIXRzCXSKLhYJxf1vpmYH1w",
@@ -1335,10 +1376,12 @@
             actualizado: "",
             fotoBiometrico: "",
             horaBiometrico: "",
+            huellaEntrada: "",
             entradaTomada: false,
             entradaAceptada: false,
             fotoSalida: "",
             horaSalida: "",
+            huellaSalida: "",
             salidaTomada: false,
             salidaAceptada: false,
             cerradoAuto: false,
@@ -1413,10 +1456,12 @@
                   actualizado: item.actualizado || "",
                   fotoBiometrico: item.fotoBiometrico || "",
                   horaBiometrico: item.horaBiometrico || "",
+                  huellaEntrada: item.huellaEntrada || "",
                   entradaTomada: Boolean(item.entradaTomada || item.fotoBiometrico),
                   entradaAceptada: Boolean(item.entradaAceptada),
                   fotoSalida: item.fotoSalida || "",
                   horaSalida: item.horaSalida || "",
+                  huellaSalida: item.huellaSalida || "",
                   salidaTomada: Boolean(item.salidaTomada || item.fotoSalida),
                   salidaAceptada: Boolean(item.salidaAceptada),
                   cerradoAuto: Boolean(item.cerradoAuto),
@@ -1454,6 +1499,10 @@
 
       const adminPassword = String(rawObj.adminPassword || "").trim() || PIN_ADMIN_DEFAULT;
 
+      const huellasRaw = Array.isArray(rawObj.fotosUsadasHashes)
+        ? rawObj.fotosUsadasHashes
+        : (rawObj.fotosUsadasHashes && typeof rawObj.fotosUsadasHashes === "object" ? Object.values(rawObj.fotosUsadasHashes) : []);
+
       return {
         fichas: fichasNormalizadas,
         evidencias: evidenciasNormalizadas,
@@ -1461,6 +1510,7 @@
         paseLista: paseListaNormalizado,
         clavesParticipantes,
         adminPassword,
+        fotosUsadasHashes: huellasRaw.filter(Boolean).slice(-1500),
         cierresMedianoche: (rawObj.cierresMedianoche && typeof rawObj.cierresMedianoche === "object") ? rawObj.cierresMedianoche : {}
       };
     }
@@ -1491,13 +1541,14 @@
         },
         clavesParticipantes: { ...CLAVES_DEFAULT_PARTICIPANTES },
         adminPassword: PIN_ADMIN_DEFAULT,
+        fotosUsadasHashes: [],
         cierresMedianoche: {}
       };
     }
 
     function cargarDBLocal() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("faro_santander_limpieza_v29");
         if (!raw) return estadoInicial();
         return normalizarDatos(JSON.parse(raw));
       } catch {
@@ -1803,7 +1854,7 @@
                 }
 
                 <div class="ficha-actions">
-                  <button class="success" data-action="subir" data-id="${f.id}">${totalFotos > 0 ? "🔒 Editar / Quitar / Agregar fotos" : "🔒 Subir evidencia (con clave)"}</button>
+                  <button class="success" data-action="subir" data-id="${f.id}">${totalFotos > 0 ? "🔒 Editar / Quitar / Subir archivos" : "🔒 Subir archivos (con clave)"}</button>
                 </div>
               `
           }
@@ -1936,6 +1987,7 @@
     const modalRevisionEl = document.getElementById("modalRevisionFoto");
     const revisionTituloEl = document.getElementById("revisionTitulo");
     const revisionSubtituloEl = document.getElementById("revisionSubtitulo");
+    const revisionAvisoRepetidaEl = document.getElementById("revisionAvisoRepetida");
     const revisionImgEl = document.getElementById("revisionImg");
     const btnAceptarFotoRevision = document.getElementById("btnAceptarFotoRevision");
     const btnTomarOtraFotoRevision = document.getElementById("btnTomarOtraFotoRevision");
@@ -1944,14 +1996,19 @@
       fotoEnRevision = datos;
       guardarRevisionPendiente(datos);
       const etiqueta = datos.tipo === "entrada" ? "ENTRADA" : "SALIDA";
-      revisionTituloEl.textContent = `Revisar foto de ${etiqueta} — ${datos.nombre}`;
+      revisionTituloEl.textContent = `Revisar archivo de ${etiqueta} — ${datos.nombre}`;
       revisionSubtituloEl.innerHTML =
-        "Si se ve clara y bien la hora, pulsa <strong>Aceptar foto</strong> (una vez aceptada ya no se puede corregir). Si se ve borrosa o no se ve bien, pulsa <strong>Tomar otra</strong>.";
+        "Si se ve clara y bien la fecha/hora estampada, pulsa <strong>Aceptar foto</strong> (una vez aceptada ya no se puede corregir). Si no, pulsa <strong>Elegir otro archivo</strong>.";
+      if (revisionAvisoRepetidaEl) {
+        revisionAvisoRepetidaEl.textContent = datos.repetida
+          ? "⚠️ Atención: esta imagen ya se había subido antes. Revisa si es la foto correcta del día."
+          : "";
+      }
       revisionImgEl.src = datos.imgData;
       modalRevisionEl.classList.add("open");
     }
 
-    function lanzarCamara(ctx) {
+    function lanzarSelectorPaseLista(ctx) {
       const registroDia = asegurarRegistroFecha(ctx.fecha);
       const actual = registroDia[ctx.horario][ctx.nombre] || {};
       if (ctx.tipo === "entrada" && actual.entradaAceptada) {
@@ -1963,26 +2020,32 @@
         return;
       }
 
-      dispararCamaraFresco(async (file) => {
+      dispararSelectorArchivos(async (files) => {
+        const file = files[0];
+        if (!file) return;
+        const huella = await calcularHuellaArchivo(file);
+        const repetida = esHuellaRepetida(huella);
         const etiqueta = `${ctx.nombre} · ${ctx.tipo.toUpperCase()} (${ETIQUETAS_HORARIO[ctx.horario]})`;
         const horaActual = obtenerFechaHoraEstampada();
         const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, horaActual, 560, 0.48);
         if (!comprimida) {
-          alert("No se pudo procesar la foto tomada. Intenta nuevamente.");
+          alert("No se pudo procesar el archivo seleccionado. Intenta con otra imagen.");
           return;
         }
         const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
         abrirRevisionFoto({
           ...ctx,
           imgData: comprimida,
+          huella,
+          repetida,
           horaStr: ahoraCorto
         });
-      });
+      }, null, false);
     }
 
     btnAceptarFotoRevision.addEventListener("click", () => {
       if (!fotoEnRevision) return;
-      const { tipo, nombre, horario, fecha, nota, marcarTrabajo, imgData, horaStr } = fotoEnRevision;
+      const { tipo, nombre, horario, fecha, nota, marcarTrabajo, imgData, huella, horaStr } = fotoEnRevision;
       const registroDia = asegurarRegistroFecha(fecha);
       const inputNotaActual = document.querySelector(`[data-pase-nota="${nombre}"]`);
       const notaFinal = inputNotaActual ? inputNotaActual.value.trim() : nota;
@@ -1992,10 +2055,12 @@
         actualizado: "",
         fotoBiometrico: "",
         horaBiometrico: "",
+        huellaEntrada: "",
         entradaTomada: false,
         entradaAceptada: false,
         fotoSalida: "",
         horaSalida: "",
+        huellaSalida: "",
         salidaTomada: false,
         salidaAceptada: false,
         obsFoto: ""
@@ -2008,6 +2073,7 @@
           nota: notaFinal,
           fotoBiometrico: imgData,
           horaBiometrico: horaStr,
+          huellaEntrada: huella || "",
           entradaTomada: true,
           entradaAceptada: true,
           actualizado: horaStr
@@ -2019,10 +2085,15 @@
           nota: notaFinal,
           fotoSalida: imgData,
           horaSalida: horaStr,
+          huellaSalida: huella || "",
           salidaTomada: true,
           salidaAceptada: true,
           actualizado: horaStr
         };
+      }
+
+      if (huella) {
+        registrarHuellasUsadas([huella]);
       }
 
       fotoEnRevision = null;
@@ -2046,7 +2117,7 @@
       fotoEnRevision = null;
       guardarRevisionPendiente(null);
       modalRevisionEl.classList.remove("open");
-      lanzarCamara(siguienteCtx);
+      lanzarSelectorPaseLista(siguienteCtx);
     });
 
     document.getElementById("gridPaseLista").addEventListener("click", (e) => {
@@ -2054,7 +2125,7 @@
       if (btnFoto) {
         const nombre = btnFoto.getAttribute("data-pase-foto");
         const inputNota = document.querySelector(`[data-pase-nota="${nombre}"]`);
-        lanzarCamara({
+        lanzarSelectorPaseLista({
           tipo: "entrada",
           nombre,
           horario: horarioSeleccionado,
@@ -2069,7 +2140,7 @@
       if (btnSalida) {
         const nombre = btnSalida.getAttribute("data-pase-salida");
         const inputNota = document.querySelector(`[data-pase-nota="${nombre}"]`);
-        lanzarCamara({
+        lanzarSelectorPaseLista({
           tipo: "salida",
           nombre,
           horario: horarioSeleccionado,
@@ -2090,7 +2161,7 @@
       const previo = registroDia[horarioSeleccionado][nombre] || {};
 
       if (nuevoEstado === "trabajo" && !previo.entradaAceptada) {
-        lanzarCamara({
+        lanzarSelectorPaseLista({
           tipo: "entrada",
           nombre,
           horario: horarioSeleccionado,
@@ -2107,10 +2178,12 @@
         actualizado: new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" }),
         fotoBiometrico: previo.fotoBiometrico || "",
         horaBiometrico: previo.horaBiometrico || "",
+        huellaEntrada: previo.huellaEntrada || "",
         entradaTomada: Boolean(previo.entradaTomada || previo.fotoBiometrico),
         entradaAceptada: Boolean(previo.entradaAceptada),
         fotoSalida: previo.fotoSalida || "",
         horaSalida: previo.horaSalida || "",
+        huellaSalida: previo.huellaSalida || "",
         salidaTomada: Boolean(previo.salidaTomada || previo.fotoSalida),
         salidaAceptada: Boolean(previo.salidaAceptada),
         obsFoto: previo.obsFoto || ""
@@ -2310,8 +2383,8 @@
                 <div class="check-label">${item.nombre}</div>
                 <div class="check-meta">Fotos: ${cant} / ${item.maxFotos} (máx. ${item.maxFotos})</div>
               </div>
-              <button type="button" class="${lleno ? "secondary" : "success"}" style="padding:6px 10px; font-size:0.76rem;" onclick="tomarFotoPunto('${item.id}')">
-                ${lleno ? "Límite alcanzado" : "Tomar foto"}
+              <button type="button" class="${lleno ? "secondary" : "success"}" style="padding:6px 10px; font-size:0.76rem;" onclick="subirArchivoPunto('${item.id}')">
+                ${lleno ? "Límite alcanzado" : "Subir archivo"}
               </button>
             </div>
           </div>
@@ -2330,6 +2403,9 @@
     function persistirFotosEnFichaActiva(targetFicha, detalleArr, claveTI, cfgTI, horaStr) {
       if (!targetFicha) return;
       const fotosArr = detalleArr.map(x => x.src).filter(Boolean);
+      const huellasNuevas = detalleArr.map(x => x.huella).filter(Boolean);
+      registrarHuellasUsadas(huellasNuevas);
+
       const notaVal = (document.getElementById("inputNota")?.value || targetFicha.nota || "").trim();
       targetFicha.fotos = fotosArr;
       targetFicha.fotosDetalle = [...detalleArr];
@@ -2344,7 +2420,7 @@
       renderPanelEncargada();
     }
 
-    window.tomarFotoPunto = function (puntoId) {
+    window.subirArchivoPunto = function (puntoId) {
       const selEl = document.getElementById("selectTurnoIslaModal");
       const clave = selEl ? selEl.value : (fichaActivaModal?.turnoIslaKey || "matutino_a");
       const cfg = CHECKLIST_POR_TURNO_ISLA[clave] || CHECKLIST_POR_TURNO_ISLA.matutino_a;
@@ -2372,10 +2448,10 @@
       guardarPuntoCapturaRespaldo(puntoSeguro);
 
       const contador = document.getElementById("contadorFotosModal");
-      if (contador) contador.textContent = `Abriendo cámara para ${item.nombre}...`;
+      if (contador) contador.textContent = `Seleccionando archivos para ${item.nombre}...`;
 
-      dispararCamaraFresco(
-        async (file) => {
+      dispararSelectorArchivos(
+        async (files) => {
           const vigente = obtenerPuntoCapturaRespaldo() || puntoSeguro;
           let targetFicha = fichaActivaModal;
           if (!targetFicha && vigente.fichaId !== null && vigente.fichaId !== undefined) {
@@ -2385,31 +2461,50 @@
             abrirModal(targetFicha.id);
           }
 
-          const fechaHoraStr = obtenerFechaHoraEstampada();
-          const etiqueta = `${vigente.turnoIslaTitulo} · ${vigente.nombre}`;
-          const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
+          const huellasEnLote = new Set(fotosTemporalesModal.map(x => x.huella).filter(Boolean));
+          let agregadas = 0;
+          let repetidasDetectadas = 0;
+          let ultimaHoraStr = obtenerFechaHoraEstampada();
 
-          if (!comprimidaEstampada) {
-            alert("No se pudo leer la foto tomada. Intenta tomarla de nuevo.");
-            guardarPuntoCapturaRespaldo(null);
-            renderChecklistModal();
-            actualizarPreviewModal();
-            return;
+          for (const file of files) {
+            if (fotosTemporalesModal.length >= MAX_FOTOS) break;
+            if (contarFotosDePunto(vigente.id) >= vigente.maxFotos) break;
+
+            const huella = await calcularHuellaArchivo(file);
+            if (esHuellaRepetida(huella, huellasEnLote)) {
+              repetidasDetectadas += 1;
+              continue;
+            }
+
+            const fechaHoraStr = obtenerFechaHoraEstampada();
+            ultimaHoraStr = fechaHoraStr;
+            const etiqueta = `${vigente.turnoIslaTitulo} · ${vigente.nombre}`;
+            const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
+
+            if (comprimidaEstampada) {
+              huellasEnLote.add(huella);
+              fotosTemporalesModal.push({
+                src: comprimidaEstampada,
+                huella,
+                fechaHora: fechaHoraStr,
+                puntoId: vigente.id,
+                puntoNombre: vigente.nombre,
+                maxFotos: vigente.maxFotos
+              });
+              agregadas += 1;
+            }
           }
 
-          const nuevaFotoObj = {
-            src: comprimidaEstampada,
-            fechaHora: fechaHoraStr,
-            puntoId: vigente.id,
-            puntoNombre: vigente.nombre,
-            maxFotos: vigente.maxFotos
-          };
+          if (repetidasDetectadas > 0) {
+            alert(`Se omitieron ${repetidasDetectadas} foto(s) porque ya se habían subido antes (para evitar repetir fotos de otras entregas).`);
+          } else if (agregadas === 0) {
+            alert("No se pudo procesar el archivo seleccionado. Intenta con otra imagen.");
+          }
 
-          fotosTemporalesModal.push(nuevaFotoObj);
-          if (targetFicha) {
+          if (targetFicha && agregadas > 0) {
             const claveAct = vigente.turnoIslaKey || clave;
             const cfgAct = CHECKLIST_POR_TURNO_ISLA[claveAct] || cfg;
-            persistirFotosEnFichaActiva(targetFicha, fotosTemporalesModal, claveAct, cfgAct, fechaHoraStr);
+            persistirFotosEnFichaActiva(targetFicha, fotosTemporalesModal, claveAct, cfgAct, ultimaHoraStr);
           }
 
           guardarPuntoCapturaRespaldo(null);
@@ -2420,7 +2515,8 @@
           guardarPuntoCapturaRespaldo(null);
           renderChecklistModal();
           actualizarPreviewModal();
-        }
+        },
+        true
       );
     };
 
@@ -2442,7 +2538,7 @@
       const aviso = document.getElementById("avisoLimiteModal");
       const grid = document.getElementById("previewGridModal");
 
-      contador.textContent = `Fotos tomadas: ${fotosTemporalesModal.length} / ${MAX_FOTOS} (máx. ${MAX_FOTOS})`;
+      contador.textContent = `Fotos subidas: ${fotosTemporalesModal.length} / ${MAX_FOTOS} (máx. ${MAX_FOTOS})`;
       aviso.textContent = "";
 
       grid.innerHTML = fotosTemporalesModal
@@ -2478,6 +2574,7 @@
         : (Array.isArray(fichaActivaModal.fotos)
             ? fichaActivaModal.fotos.map((src) => ({
                 src,
+                huella: "",
                 fechaHora: fichaActivaModal.horaSubida || "",
                 puntoId: "general",
                 puntoNombre: fichaActivaModal.area || "Evidencia",
@@ -2510,6 +2607,9 @@
       if (!fichaActivaModal) return;
 
       const fotosFinales = fotosTemporalesModal.map(x => x.src);
+      const huellasFinales = fotosTemporalesModal.map(x => x.huella).filter(Boolean);
+      registrarHuellasUsadas(huellasFinales);
+
       const nota = document.getElementById("inputNota").value.trim();
       const ahora = obtenerFechaHoraEstampada();
       const selEl = document.getElementById("selectTurnoIslaModal");
@@ -2576,7 +2676,7 @@
       const cont = document.getElementById("contadorFotosQueja");
       const grid = document.getElementById("previewFotosQueja");
       if (!cont || !grid) return;
-      cont.textContent = `Fotos de queja tomadas: ${fotosQuejaTemporales.length} / 10`;
+      cont.textContent = `Fotos de queja subidas: ${fotosQuejaTemporales.length} / 10`;
       grid.innerHTML = fotosQuejaTemporales.map((f) => `
         <div class="foto-card-item">
           <img src="${f.src}" alt="Foto de queja" />
@@ -2585,25 +2685,37 @@
       `).join("");
     }
 
-    window.tomarFotoQueja = function () {
+    window.subirArchivoQueja = function () {
       if (fotosQuejaTemporales.length >= 10) {
         alert("Máximo 10 fotos por reporte de queja.");
         return;
       }
-      dispararCamaraFresco(async (file) => {
-        if (fotosQuejaTemporales.length >= 10) {
-          alert("Máximo 10 fotos por reporte de queja.");
-          return;
+      dispararSelectorArchivos(async (files) => {
+        const huellasEnLote = new Set(fotosQuejaTemporales.map(x => x.huella).filter(Boolean));
+        let repetidas = 0;
+
+        for (const file of files) {
+          if (fotosQuejaTemporales.length >= 10) break;
+          const huella = await calcularHuellaArchivo(file);
+          if (esHuellaRepetida(huella, huellasEnLote)) {
+            repetidas += 1;
+            continue;
+          }
+          const fechaHoraStr = obtenerFechaHoraEstampada();
+          const tipoVal = document.getElementById("quejaTipo")?.value || "limpieza";
+          const etiqueta = `QUEJA (${tipoVal.toUpperCase()})`;
+          const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
+          if (comprimida) {
+            huellasEnLote.add(huella);
+            fotosQuejaTemporales.push({ src: comprimida, huella, fechaHora: fechaHoraStr });
+          }
         }
-        const fechaHoraStr = obtenerFechaHoraEstampada();
-        const tipoVal = document.getElementById("quejaTipo")?.value || "limpieza";
-        const etiqueta = `QUEJA (${tipoVal.toUpperCase()})`;
-        const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
-        if (comprimida) {
-          fotosQuejaTemporales.push({ src: comprimida, fechaHora: fechaHoraStr });
+
+        if (repetidas > 0) {
+          alert(`Se omitieron ${repetidas} foto(s) repetidas de entregas anteriores.`);
         }
         actualizarPreviewQueja();
-      });
+      }, null, true);
     };
 
     window.limpiarFotosQuejaTemp = function () {
@@ -2618,11 +2730,13 @@
       const descripcion = (document.getElementById("quejaDescripcion")?.value || "").trim();
 
       if (!descripcion && !fotosQuejaTemporales.length) {
-        alert("Escribe una descripción o toma al menos 1 foto desde la cámara para publicar la queja/reporte.");
+        alert("Escribe una descripción o sube al menos 1 archivo de foto para publicar la queja/reporte.");
         return;
       }
 
       const ahora = obtenerFechaHoraEstampada();
+      registrarHuellasUsadas(fotosQuejaTemporales.map(x => x.huella).filter(Boolean));
+
       if (!Array.isArray(db.quejas)) db.quejas = [];
       db.quejas.unshift({
         id: Date.now(),
@@ -2843,7 +2957,7 @@
       return huboCambios;
     }
 
-    const SESSION_ENCARGADA_KEY = "faro_santander_admin_activo_v29";
+    const SESSION_ENCARGADA_KEY = "faro_santander_admin_activo_v30";
     let esEncargadaActiva = sessionStorage.getItem(SESSION_ENCARGADA_KEY) === "1";
 
     const fechaControlEncargadaEl = document.getElementById("fechaControlEncargada");
