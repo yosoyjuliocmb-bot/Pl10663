@@ -512,6 +512,70 @@
       border: 1px solid #0284c7;
       color: #bae6fd;
     }
+
+    @keyframes flashLuzVerde {
+      0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.95); background-color: rgba(22, 163, 74, 0.42); }
+      50% { box-shadow: 0 0 24px 8px rgba(74, 222, 128, 0.65); background-color: rgba(22, 163, 74, 0.24); }
+      100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+    }
+
+    .ficha.alerta-luz-completa {
+      animation: flashLuzVerde 1.6s ease-in-out 3;
+      border-color: #4ade80 !important;
+    }
+
+    .meta-progreso-bar {
+      width: 100%;
+      height: 7px;
+      background: rgba(15, 23, 42, 0.85);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #334155;
+      margin-top: 5px;
+    }
+
+    .meta-progreso-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0ea5e9, #4ade80);
+      transition: width 0.25s ease;
+    }
+
+    .notif-toast-banner {
+      position: fixed;
+      top: 76px;
+      left: 12px;
+      right: 12px;
+      max-width: 860px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #064e3b, #0f172a);
+      border: 2px solid #4ade80;
+      box-shadow: 0 0 24px rgba(74, 222, 128, 0.55);
+      color: #f0fdf4;
+      border-radius: 14px;
+      padding: 12px 14px;
+      z-index: 65;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .notif-toast-banner.visible {
+      display: flex;
+      animation: flashLuzVerde 1.2s ease-in-out 2;
+    }
+
+    .notif-toast-title {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #86efac;
+    }
+
+    .notif-toast-sub {
+      font-size: 0.8rem;
+      color: #e2e8f0;
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -523,6 +587,14 @@
       <span id="badgeEncargadaActiva" style="display:none; background:rgba(22,163,74,0.22); border:1px solid #4ade80; color:#dcfce7; font-size:0.74rem; font-weight:800; padding:4px 10px; border-radius:999px;">MODO ADMINISTRADOR ACTIVO</span>
     </div>
   </header>
+
+  <div id="notifBannerAlerta" class="notif-toast-banner" role="status" aria-live="polite">
+    <div>
+      <div id="notifBannerTitulo" class="notif-toast-title">🔔 ¡Meta de evidencias completada!</div>
+      <div id="notifBannerSub" class="notif-toast-sub">Un compañero completó su entrega.</div>
+    </div>
+    <button type="button" class="secondary" style="padding:6px 10px; font-size:0.76rem;" onclick="cerrarBannerNotificacion()">OK</button>
+  </div>
 
   <main>
     <!-- VISTA 1: TABLERO DE LIMPIEZA (MIÉRCOLES Y DOMINGOS) -->
@@ -1001,7 +1073,7 @@
       });
     }
 
-    function capturarYEstamparFotoAsync(file, etiquetaArriba, fechaHoraStr, maxWidth = 640, quality = 0.52) {
+    function capturarYEstamparFotoAsync(file, etiquetaArriba, fechaHoraStr, maxWidth = 560, quality = 0.48) {
       return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = function (ev) {
@@ -1039,8 +1111,8 @@
             };
 
             let out = renderConTamano(maxWidth, quality);
-            if (out.length > 95000) {
-              out = renderConTamano(480, 0.42);
+            if (out.length > 75000) {
+              out = renderConTamano(420, 0.38);
             }
             resolve(out);
           };
@@ -1349,10 +1421,137 @@
       }
     }
 
+    const META_FOTOS_MINIMA = 3;
+    const fichasNotificadasEnJornada = new Set();
+    let ultimaFirmaRemotaNotificada = "";
+
+    function evaluarMetaChecklistFicha(ficha) {
+      const claveTI = ficha.turnoIslaKey || (ficha.turno === "Vespertino" ? "vespertino_a" : "matutino_a");
+      const cfg = CHECKLIST_POR_TURNO_ISLA[claveTI] || CHECKLIST_POR_TURNO_ISLA.matutino_a;
+      const items = Array.isArray(cfg.items) ? cfg.items : [];
+      const totalOpciones = items.length;
+      const detalle = Array.isArray(ficha.fotosDetalle) ? ficha.fotosDetalle : [];
+      const fotosArr = Array.isArray(ficha.fotos) ? ficha.fotos : [];
+
+      const idsCubiertos = new Set();
+      detalle.forEach((d) => {
+        if (d && d.puntoId && d.puntoId !== "general" && (d.src || fotosArr.length > 0)) {
+          idsCubiertos.add(d.puntoId);
+        }
+      });
+
+      const opcionesCubiertas = items.filter((it) => idsCubiertos.has(it.id)).length;
+      const metaCumplida = totalOpciones > 0 && opcionesCubiertas >= totalOpciones;
+      const pctMeta = totalOpciones > 0 ? Math.min(100, Math.round((opcionesCubiertas / totalOpciones) * 100)) : 0;
+
+      return {
+        claveTI,
+        tituloTurnoIsla: cfg.titulo,
+        totalOpciones,
+        opcionesCubiertas,
+        metaCumplida,
+        pctMeta,
+        totalFotos: fotosArr.length
+      };
+    }
+
+    function reproducirSonidoNotificacion() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const notas = [587.33, 783.99, 1046.5];
+        notas.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.11);
+          gain.gain.setValueAtTime(0.001, ctx.currentTime + idx * 0.11);
+          gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + idx * 0.11 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + idx * 0.11 + 0.24);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.11);
+          osc.stop(ctx.currentTime + idx * 0.11 + 0.26);
+        });
+      } catch (e) {
+        console.warn("Audio no disponible:", e);
+      }
+    }
+
+    function dispararAlertaVisualYSonora(titulo, detalle, fichaId = null) {
+      reproducirSonidoNotificacion();
+      if (navigator.vibrate) {
+        try { navigator.vibrate([180, 90, 220]); } catch {}
+      }
+
+      const banner = document.getElementById("notifBannerAlerta");
+      const titleEl = document.getElementById("notifBannerTitulo");
+      const subEl = document.getElementById("notifBannerSub");
+      if (banner && titleEl && subEl) {
+        titleEl.textContent = titulo;
+        subEl.textContent = detalle;
+        banner.classList.remove("visible");
+        void banner.offsetWidth;
+        banner.classList.add("visible");
+        clearTimeout(window._timerBannerNotif);
+        window._timerBannerNotif = setTimeout(() => {
+          banner.classList.remove("visible");
+        }, 7000);
+      }
+
+      if (fichaId !== null && fichaId !== undefined) {
+        const cardEl = document.querySelector(`.ficha[data-ficha-card="${fichaId}"]`);
+        if (cardEl) {
+          cardEl.classList.remove("alerta-luz-completa");
+          void cardEl.offsetWidth;
+          cardEl.classList.add("alerta-luz-completa");
+        }
+      }
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification(titulo, { body: detalle });
+        } catch {}
+      }
+    }
+
+    window.cerrarBannerNotificacion = function () {
+      const banner = document.getElementById("notifBannerAlerta");
+      if (banner) banner.classList.remove("visible");
+    };
+
+    function comprobarMetasCompletadasYNotificar(fichasLista) {
+      if (!Array.isArray(fichasLista)) return;
+      fichasLista.forEach((f) => {
+        if (f.noParticipa) return;
+        const ev = evaluarMetaChecklistFicha(f);
+        const claveMeta = `${f.id}_${ev.claveTI}_${ev.metaCumplida ? "META_OK" : "PARCIAL"}_${f.horaSubida || ""}`;
+        if (ev.metaCumplida && !fichasNotificadasEnJornada.has(claveMeta)) {
+          fichasNotificadasEnJornada.add(claveMeta);
+          dispararAlertaVisualYSonora(
+            `🔔 ¡${f.nombre} completó todas sus opciones (${ev.opcionesCubiertas}/${ev.totalOpciones})!`,
+            `${ev.tituloTurnoIsla} · Fotos: ${ev.totalFotos} · Hora: ${f.horaSubida || "ahora"}`,
+            f.id
+          );
+        }
+      });
+    }
+
     if (rutaNube) {
       onValue(rutaNube, (snapshot) => {
         if (snapshot.exists()) {
-          db = normalizarDatos(snapshot.val());
+          const datosNube = normalizarDatos(snapshot.val());
+          const firmaActual = (datosNube.fichas || [])
+            .map(f => {
+              const evF = evaluarMetaChecklistFicha(f);
+              return `${f.nombre}:${evF.opcionesCubiertas}/${evF.totalOpciones}:${(f.fotos || []).length}:${f.horaSubida || ""}`;
+            })
+            .join("|");
+          const huboCambioExterno = ultimaFirmaRemotaNotificada && ultimaFirmaRemotaNotificada !== firmaActual;
+          ultimaFirmaRemotaNotificada = firmaActual;
+
+          db = datosNube;
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
           } catch {}
@@ -1360,6 +1559,9 @@
           renderPaseLista();
           renderPanelEncargada();
           renderQuejas();
+          if (huboCambioExterno) {
+            comprobarMetasCompletadasYNotificar(db.fichas);
+          }
         }
       });
     }
@@ -1402,6 +1604,10 @@
 
         const card = document.createElement("div");
         card.className = `ficha estado-${f.estado}`;
+        card.setAttribute("data-ficha-card", String(f.id));
+        const evMeta = evaluarMetaChecklistFicha(f);
+        const pctMeta = evMeta.pctMeta;
+        const metaCumplida = evMeta.metaCumplida;
 
         card.innerHTML = `
           <div class="ficha-top">
@@ -1435,9 +1641,22 @@
                 </div>
 
                 ${
+                  !f.noParticipa
+                    ? `
+                      <div class="status-note" style="color:${metaCumplida ? "#4ade80" : "#7dd3fc"};">
+                        ${metaCumplida
+                          ? `✅ Meta completada (${evMeta.opcionesCubiertas}/${evMeta.totalOpciones} opciones · ${totalFotos} fotos)`
+                          : `Opciones: ${evMeta.opcionesCubiertas}/${evMeta.totalOpciones} cubiertas (${totalFotos} fotos)`}
+                      </div>
+                      <div class="meta-progreso-bar">
+                        <div class="meta-progreso-fill" style="width:${pctMeta}%;"></div>
+                      </div>
+                    `
+                    : ""
+                }
+                ${
                   totalFotos > 0
                     ? `
-                      <div class="status-note">Fotos subidas: ${totalFotos} / ${MAX_FOTOS}</div>
                       <div class="thumbs-grid">
                         ${f.fotos.slice(0, 4).map(src => `<img src="${src}" alt="Evidencia de ${f.nombre}" />`).join("")}
                       </div>
@@ -1712,7 +1931,7 @@
         contextoCaptura = null;
         return;
       }
-      const comprimida = await comprimirImagenAsync(file, 640, 0.52);
+      const comprimida = await comprimirImagenAsync(file, 560, 0.48);
       const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
       const ctx = { ...contextoCaptura };
       contextoCaptura = null;
@@ -1729,7 +1948,7 @@
         contextoCaptura = null;
         return;
       }
-      const comprimida = await comprimirImagenAsync(file, 640, 0.52);
+      const comprimida = await comprimirImagenAsync(file, 560, 0.48);
       const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
       const ctx = { ...contextoCaptura };
       contextoCaptura = null;
@@ -1848,7 +2067,7 @@
 
     window.limpiarHorarioActual = function () {
       const etiqueta = ETIQUETAS_HORARIO[horarioSeleccionado];
-      if (!confirm(`¿Limpiar el pase de lista de ${etiqueta} (${fechaSeleccionada})?`)) return;
+      if (!confirm(`¿Limpiar el pase de lista de ${etiqueta} en la fecha ${fechaSeleccionada}?`)) return;
       const registroDia = asegurarRegistroFecha(fechaSeleccionada);
       INTEGRANTES_INICIALES.forEach((nombre) => {
         registroDia[horarioSeleccionado][nombre] = {
@@ -1868,6 +2087,7 @@
       const f = db.fichas.find(x => x.id === id);
       if (!f) return;
 
+      // Si el administrador ya inició sesión, entra directo sin pedir otra clave
       if (esEncargadaActiva) {
         abrirModal(id);
         return;
@@ -2062,7 +2282,7 @@
 
       const fechaHoraStr = obtenerFechaHoraEstampada();
       const etiqueta = `${puntoCapturaEvidencia.turnoIslaTitulo} · ${puntoCapturaEvidencia.nombre}`;
-      const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 640, 0.52);
+      const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
 
       fotosTemporalesModal.push({
         src: comprimidaEstampada,
@@ -2185,10 +2405,37 @@
         });
       }
 
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+
       guardarYRefrescar(true);
+      const idGuardado = targetFicha.id;
+      const nombreGuardado = targetFicha.nombre;
+      const areaGuardada = targetFicha.area;
+      const cantGuardada = fotosFinales.length;
+      const horaGuardada = ahora;
       cerrarModal();
       renderTablero(false);
       renderPanelEncargada();
+
+      const evGuardado = evaluarMetaChecklistFicha(targetFicha);
+      if (evGuardado.metaCumplida) {
+        const claveM = `${idGuardado}_${evGuardado.claveTI}_META_OK_${horaGuardada}`;
+        fichasNotificadasEnJornada.add(claveM);
+        dispararAlertaVisualYSonora(
+          `🔔 ¡${nombreGuardado} completó todas sus opciones (${evGuardado.opcionesCubiertas}/${evGuardado.totalOpciones})!`,
+          `${areaGuardada} · ${cantGuardada} fotos · ${horaGuardada}`,
+          idGuardado
+        );
+      } else if (cantGuardada > 0) {
+        reproducirSonidoNotificacion();
+        dispararAlertaVisualYSonora(
+          `📸 Evidencia guardada para ${nombreGuardado} (${evGuardado.opcionesCubiertas}/${evGuardado.totalOpciones} opciones)`,
+          `${areaGuardada} · ${cantGuardada} fotos · ${horaGuardada}`,
+          idGuardado
+        );
+      }
     };
 
     function actualizarPreviewQueja() {
@@ -2228,7 +2475,7 @@
       const fechaHoraStr = obtenerFechaHoraEstampada();
       const tipoVal = document.getElementById("quejaTipo")?.value || "limpieza";
       const etiqueta = `QUEJA (${tipoVal.toUpperCase()})`;
-      const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 640, 0.52);
+      const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
       fotosQuejaTemporales.push({ src: comprimida, fechaHora: fechaHoraStr });
       e.target.value = "";
       actualizarPreviewQueja();
