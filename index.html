@@ -1042,26 +1042,15 @@
       }
     };
 
-    const inputCamaraEvidencia = document.createElement("input");
-    inputCamaraEvidencia.type = "file";
-    inputCamaraEvidencia.accept = "image/*";
-    inputCamaraEvidencia.capture = "environment";
-    inputCamaraEvidencia.style.display = "none";
-    document.body.appendChild(inputCamaraEvidencia);
-
-    const inputCamaraQueja = document.createElement("input");
-    inputCamaraQueja.type = "file";
-    inputCamaraQueja.accept = "image/*";
-    inputCamaraQueja.capture = "environment";
-    inputCamaraQueja.style.display = "none";
-    document.body.appendChild(inputCamaraQueja);
-
     const PUNTO_CAPTURA_TEMP_KEY = "faro_santander_punto_captura_temp";
+    const REVISION_PENDIENTE_KEY = "faro_santander_revision_pendiente_v1";
     let puntoCapturaEvidencia = null;
     let fotosQuejaTemporales = [];
+    let inputActivoCamara = null;
 
     function guardarPuntoCapturaRespaldo(obj) {
       puntoCapturaEvidencia = obj;
+      window.__puntoCapturaFaro = obj;
       try {
         if (obj) sessionStorage.setItem(PUNTO_CAPTURA_TEMP_KEY, JSON.stringify(obj));
         else sessionStorage.removeItem(PUNTO_CAPTURA_TEMP_KEY);
@@ -1070,6 +1059,7 @@
 
     function obtenerPuntoCapturaRespaldo() {
       if (puntoCapturaEvidencia) return puntoCapturaEvidencia;
+      if (window.__puntoCapturaFaro) return window.__puntoCapturaFaro;
       try {
         const raw = sessionStorage.getItem(PUNTO_CAPTURA_TEMP_KEY);
         if (raw) {
@@ -1078,6 +1068,25 @@
         }
       } catch {}
       return null;
+    }
+
+    function guardarRevisionPendiente(datos) {
+      try {
+        if (datos) {
+          sessionStorage.setItem(REVISION_PENDIENTE_KEY, JSON.stringify(datos));
+        } else {
+          sessionStorage.removeItem(REVISION_PENDIENTE_KEY);
+        }
+      } catch {}
+    }
+
+    function obtenerRevisionPendiente() {
+      try {
+        const raw = sessionStorage.getItem(REVISION_PENDIENTE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch {
+        return null;
+      }
     }
 
     function obtenerFechaHoraEstampada() {
@@ -1092,35 +1101,50 @@
     }
 
     async function cargarOrigenImagen(file) {
+      const mimeType = file.type || "image/jpeg";
+      let blobUrl = "";
+      try {
+        const buffer = await file.arrayBuffer();
+        const blob = new Blob([buffer], { type: mimeType });
+        blobUrl = URL.createObjectURL(blob);
+      } catch {
+        blobUrl = URL.createObjectURL(file);
+      }
+
       if (typeof createImageBitmap === "function") {
         try {
-          const bitmap = await createImageBitmap(file);
+          const resp = await fetch(blobUrl);
+          const freshBlob = await resp.blob();
+          const bitmap = await createImageBitmap(freshBlob);
           return {
             source: bitmap,
             width: bitmap.width,
             height: bitmap.height,
-            cleanup: () => { try { bitmap.close(); } catch {} }
+            cleanup: () => {
+              try { bitmap.close(); } catch {}
+              try { URL.revokeObjectURL(blobUrl); } catch {}
+            }
           };
         } catch {}
       }
 
       return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function (ev) {
-          const img = new Image();
-          img.onload = function () {
-            resolve({
-              source: img,
-              width: img.naturalWidth || img.width,
-              height: img.naturalHeight || img.height,
-              cleanup: () => {}
-            });
-          };
-          img.onerror = reject;
-          img.src = ev.target.result;
+        const img = new Image();
+        img.onload = function () {
+          resolve({
+            source: img,
+            width: img.naturalWidth || img.width,
+            height: img.naturalHeight || img.height,
+            cleanup: () => {
+              try { URL.revokeObjectURL(blobUrl); } catch {}
+            }
+          });
         };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+        img.onerror = function (err) {
+          try { URL.revokeObjectURL(blobUrl); } catch {}
+          reject(err);
+        };
+        img.src = blobUrl;
       });
     }
 
@@ -1168,6 +1192,68 @@
         console.error("Error procesando imagen:", err);
         return "";
       }
+    }
+
+    function dispararCamaraFresco(onArchivoListo, onCancelar) {
+      try {
+        if (inputActivoCamara && inputActivoCamara.parentNode) {
+          inputActivoCamara.parentNode.removeChild(inputActivoCamara);
+        }
+      } catch {}
+
+      const freshInput = document.createElement("input");
+      freshInput.type = "file";
+      freshInput.accept = "image/*";
+      freshInput.capture = "environment";
+      freshInput.style.position = "fixed";
+      freshInput.style.left = "-9999px";
+      freshInput.style.opacity = "0";
+      document.body.appendChild(freshInput);
+      inputActivoCamara = freshInput;
+
+      let resuelto = false;
+
+      const limpiar = () => {
+        try {
+          if (freshInput && freshInput.parentNode) {
+            freshInput.parentNode.removeChild(freshInput);
+          }
+        } catch {}
+        if (inputActivoCamara === freshInput) {
+          inputActivoCamara = null;
+        }
+      };
+
+      const manejarSeleccion = async () => {
+        if (resuelto) return;
+        const file = freshInput.files && freshInput.files[0];
+        if (!file) return;
+        resuelto = true;
+        limpiar();
+        if (typeof onArchivoListo === "function") {
+          await onArchivoListo(file);
+        }
+      };
+
+      freshInput.addEventListener("change", manejarSeleccion, { once: true });
+      freshInput.addEventListener("input", manejarSeleccion, { once: true });
+
+      const onFocusRegreso = () => {
+        setTimeout(async () => {
+          if (resuelto) return;
+          const file = freshInput.files && freshInput.files[0];
+          if (file) {
+            await manejarSeleccion();
+          } else {
+            resuelto = true;
+            limpiar();
+            if (typeof onCancelar === "function") onCancelar();
+          }
+        }, 450);
+      };
+      window.addEventListener("focus", onFocusRegreso, { once: true });
+
+      freshInput.click();
     }
 
     const MAX_FOTOS = 15;
@@ -1845,21 +1931,6 @@
       renderPaseLista();
     });
 
-    const inputFotoBiometrico = document.createElement("input");
-    inputFotoBiometrico.type = "file";
-    inputFotoBiometrico.accept = "image/*";
-    inputFotoBiometrico.capture = "environment";
-    inputFotoBiometrico.style.display = "none";
-    document.body.appendChild(inputFotoBiometrico);
-
-    const inputFotoSalida = document.createElement("input");
-    inputFotoSalida.type = "file";
-    inputFotoSalida.accept = "image/*";
-    inputFotoSalida.capture = "environment";
-    inputFotoSalida.style.display = "none";
-    document.body.appendChild(inputFotoSalida);
-
-    let contextoCaptura = null;
     let fotoEnRevision = null;
 
     const modalRevisionEl = document.getElementById("modalRevisionFoto");
@@ -1871,6 +1942,7 @@
 
     function abrirRevisionFoto(datos) {
       fotoEnRevision = datos;
+      guardarRevisionPendiente(datos);
       const etiqueta = datos.tipo === "entrada" ? "ENTRADA" : "SALIDA";
       revisionTituloEl.textContent = `Revisar foto de ${etiqueta} — ${datos.nombre}`;
       revisionSubtituloEl.innerHTML =
@@ -1890,14 +1962,22 @@
         alert(`La foto de SALIDA de ${ctx.nombre} ya fue aceptada y no se puede corregir.`);
         return;
       }
-      contextoCaptura = ctx;
-      if (ctx.tipo === "entrada") {
-        inputFotoBiometrico.value = "";
-        inputFotoBiometrico.click();
-      } else {
-        inputFotoSalida.value = "";
-        inputFotoSalida.click();
-      }
+
+      dispararCamaraFresco(async (file) => {
+        const etiqueta = `${ctx.nombre} · ${ctx.tipo.toUpperCase()} (${ETIQUETAS_HORARIO[ctx.horario]})`;
+        const horaActual = obtenerFechaHoraEstampada();
+        const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, horaActual, 560, 0.48);
+        if (!comprimida) {
+          alert("No se pudo procesar la foto tomada. Intenta nuevamente.");
+          return;
+        }
+        const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+        abrirRevisionFoto({
+          ...ctx,
+          imgData: comprimida,
+          horaStr: ahoraCorto
+        });
+      });
     }
 
     btnAceptarFotoRevision.addEventListener("click", () => {
@@ -1946,10 +2026,11 @@
       }
 
       fotoEnRevision = null;
-      contextoCaptura = null;
+      guardarRevisionPendiente(null);
       modalRevisionEl.classList.remove("open");
       guardarYRefrescar(true);
       renderPaseLista();
+      renderPanelEncargada();
     });
 
     btnTomarOtraFotoRevision.addEventListener("click", () => {
@@ -1963,42 +2044,9 @@
         marcarTrabajo: fotoEnRevision.marcarTrabajo
       };
       fotoEnRevision = null;
+      guardarRevisionPendiente(null);
       modalRevisionEl.classList.remove("open");
       lanzarCamara(siguienteCtx);
-    });
-
-    inputFotoBiometrico.addEventListener("change", async (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file || !contextoCaptura) {
-        contextoCaptura = null;
-        return;
-      }
-      const comprimida = await comprimirImagenAsync(file, 560, 0.48);
-      const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
-      const ctx = { ...contextoCaptura };
-      contextoCaptura = null;
-      abrirRevisionFoto({
-        ...ctx,
-        imgData: comprimida,
-        horaStr: ahoraCorto
-      });
-    });
-
-    inputFotoSalida.addEventListener("change", async (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file || !contextoCaptura) {
-        contextoCaptura = null;
-        return;
-      }
-      const comprimida = await comprimirImagenAsync(file, 560, 0.48);
-      const ahoraCorto = new Date().toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
-      const ctx = { ...contextoCaptura };
-      contextoCaptura = null;
-      abrirRevisionFoto({
-        ...ctx,
-        imgData: comprimida,
-        horaStr: ahoraCorto
-      });
     });
 
     document.getElementById("gridPaseLista").addEventListener("click", (e) => {
@@ -2279,9 +2327,26 @@
       renderChecklistModal();
     };
 
+    function persistirFotosEnFichaActiva(targetFicha, detalleArr, claveTI, cfgTI, horaStr) {
+      if (!targetFicha) return;
+      const fotosArr = detalleArr.map(x => x.src).filter(Boolean);
+      const notaVal = (document.getElementById("inputNota")?.value || targetFicha.nota || "").trim();
+      targetFicha.fotos = fotosArr;
+      targetFicha.fotosDetalle = [...detalleArr];
+      targetFicha.turnoIslaKey = claveTI;
+      targetFicha.area = cfgTI.titulo;
+      targetFicha.nota = notaVal;
+      targetFicha.horaSubida = fotosArr.length ? horaStr : "";
+      targetFicha.estado = fotosArr.length ? "verde" : "pendiente";
+      targetFicha.noParticipa = false;
+      guardarYRefrescar(true);
+      renderTablero(false);
+      renderPanelEncargada();
+    }
+
     window.tomarFotoPunto = function (puntoId) {
       const selEl = document.getElementById("selectTurnoIslaModal");
-      const clave = selEl ? selEl.value : "matutino_a";
+      const clave = selEl ? selEl.value : (fichaActivaModal?.turnoIslaKey || "matutino_a");
       const cfg = CHECKLIST_POR_TURNO_ISLA[clave] || CHECKLIST_POR_TURNO_ISLA.matutino_a;
       const item = cfg.items.find(x => x.id === puntoId);
       if (!item) return;
@@ -2296,86 +2361,78 @@
         return;
       }
 
-      guardarPuntoCapturaRespaldo({
+      const puntoSeguro = {
         id: item.id,
         nombre: item.nombre,
         maxFotos: item.maxFotos,
+        turnoIslaKey: clave,
         turnoIslaTitulo: cfg.titulo,
-        fichaId: fichaActivaModal ? fichaActivaModal.id : null
-      });
+        fichaId: fichaActivaModal ? fichaActivaModal.id : 0
+      };
+      guardarPuntoCapturaRespaldo(puntoSeguro);
 
       const contador = document.getElementById("contadorFotosModal");
       if (contador) contador.textContent = `Abriendo cámara para ${item.nombre}...`;
 
-      inputCamaraEvidencia.value = "";
-      inputCamaraEvidencia.click();
-    };
+      dispararCamaraFresco(
+        async (file) => {
+          const vigente = obtenerPuntoCapturaRespaldo() || puntoSeguro;
+          let targetFicha = fichaActivaModal;
+          if (!targetFicha && vigente.fichaId !== null && vigente.fichaId !== undefined) {
+            targetFicha = db.fichas.find(x => x.id === vigente.fichaId) || null;
+          }
+          if (targetFicha && !fichaActivaModal) {
+            abrirModal(targetFicha.id);
+          }
 
-    inputCamaraEvidencia.addEventListener("change", async function (e) {
-      const file = e.target.files && e.target.files[0];
-      const puntoActivo = obtenerPuntoCapturaRespaldo();
+          const fechaHoraStr = obtenerFechaHoraEstampada();
+          const etiqueta = `${vigente.turnoIslaTitulo} · ${vigente.nombre}`;
+          const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
 
-      if (!file) {
-        guardarPuntoCapturaRespaldo(null);
-        actualizarPreviewModal();
-        return;
-      }
+          if (!comprimidaEstampada) {
+            alert("No se pudo leer la foto tomada. Intenta tomarla de nuevo.");
+            guardarPuntoCapturaRespaldo(null);
+            renderChecklistModal();
+            actualizarPreviewModal();
+            return;
+          }
 
-      const puntoSeguro = puntoActivo || {
-        id: "cuarto_elec",
-        nombre: "Cuarto eléctrico",
-        maxFotos: 5,
-        turnoIslaTitulo: "Turno vespertino isla A",
-        fichaId: fichaActivaModal ? fichaActivaModal.id : null
-      };
+          const nuevaFotoObj = {
+            src: comprimidaEstampada,
+            fechaHora: fechaHoraStr,
+            puntoId: vigente.id,
+            puntoNombre: vigente.nombre,
+            maxFotos: vigente.maxFotos
+          };
 
-      if (!fichaActivaModal && puntoSeguro.fichaId !== null && puntoSeguro.fichaId !== undefined) {
-        const encontrada = db.fichas.find(x => x.id === puntoSeguro.fichaId);
-        if (encontrada) {
-          abrirModal(encontrada.id);
+          fotosTemporalesModal.push(nuevaFotoObj);
+          if (targetFicha) {
+            const claveAct = vigente.turnoIslaKey || clave;
+            const cfgAct = CHECKLIST_POR_TURNO_ISLA[claveAct] || cfg;
+            persistirFotosEnFichaActiva(targetFicha, fotosTemporalesModal, claveAct, cfgAct, fechaHoraStr);
+          }
+
+          guardarPuntoCapturaRespaldo(null);
+          renderChecklistModal();
+          actualizarPreviewModal();
+        },
+        () => {
+          guardarPuntoCapturaRespaldo(null);
+          renderChecklistModal();
+          actualizarPreviewModal();
         }
-      }
-
-      const contador = document.getElementById("contadorFotosModal");
-      if (contador) contador.textContent = `Procesando foto de ${puntoSeguro.nombre}...`;
-
-      const cantActual = contarFotosDePunto(puntoSeguro.id);
-      if (cantActual >= puntoSeguro.maxFotos) {
-        alert(`Ya alcanzaste el límite de ${puntoSeguro.maxFotos} fotos para "${puntoSeguro.nombre}".`);
-        guardarPuntoCapturaRespaldo(null);
-        actualizarPreviewModal();
-        return;
-      }
-
-      const fechaHoraStr = obtenerFechaHoraEstampada();
-      const etiqueta = `${puntoSeguro.turnoIslaTitulo} · ${puntoSeguro.nombre}`;
-      const comprimidaEstampada = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
-
-      if (!comprimidaEstampada) {
-        alert("No se pudo leer la foto tomada. Intenta tomarla de nuevo.");
-        guardarPuntoCapturaRespaldo(null);
-        renderChecklistModal();
-        actualizarPreviewModal();
-        return;
-      }
-
-      fotosTemporalesModal.push({
-        src: comprimidaEstampada,
-        fechaHora: fechaHoraStr,
-        puntoId: puntoSeguro.id,
-        puntoNombre: puntoSeguro.nombre,
-        maxFotos: puntoSeguro.maxFotos
-      });
-
-      guardarPuntoCapturaRespaldo(null);
-      e.target.value = "";
-      renderChecklistModal();
-      actualizarPreviewModal();
-    });
+      );
+    };
 
     window.eliminarFotoIndividualModal = function (index) {
       if (index < 0 || index >= fotosTemporalesModal.length) return;
       fotosTemporalesModal.splice(index, 1);
+      if (fichaActivaModal) {
+        const selEl = document.getElementById("selectTurnoIslaModal");
+        const claveAct = selEl ? selEl.value : (fichaActivaModal.turnoIslaKey || "matutino_a");
+        const cfgAct = CHECKLIST_POR_TURNO_ISLA[claveAct] || CHECKLIST_POR_TURNO_ISLA.matutino_a;
+        persistirFotosEnFichaActiva(fichaActivaModal, fotosTemporalesModal, claveAct, cfgAct, obtenerFechaHoraEstampada());
+      }
       renderChecklistModal();
       actualizarPreviewModal();
     };
@@ -2402,6 +2459,12 @@
     window.limpiarFotosModal = function () {
       if (!confirm("¿Quitar todas las fotos de esta tarjeta?")) return;
       fotosTemporalesModal = [];
+      if (fichaActivaModal) {
+        const selEl = document.getElementById("selectTurnoIslaModal");
+        const claveAct = selEl ? selEl.value : (fichaActivaModal.turnoIslaKey || "matutino_a");
+        const cfgAct = CHECKLIST_POR_TURNO_ISLA[claveAct] || CHECKLIST_POR_TURNO_ISLA.matutino_a;
+        persistirFotosEnFichaActiva(fichaActivaModal, [], claveAct, cfgAct, "");
+      }
       renderChecklistModal();
       actualizarPreviewModal();
     };
@@ -2442,10 +2505,6 @@
       guardarPuntoCapturaRespaldo(null);
       document.getElementById("modalEvidencia").classList.remove("open");
     };
-
-    function comprimirImagenAsync(file, maxWidth, quality) {
-      return capturarYEstamparFotoAsync(file, "Faro Santander", obtenerFechaHoraEstampada(), maxWidth, quality);
-    }
 
     window.guardarEvidencia = function () {
       if (!fichaActivaModal) return;
@@ -2531,32 +2590,26 @@
         alert("Máximo 10 fotos por reporte de queja.");
         return;
       }
-      inputCamaraQueja.value = "";
-      inputCamaraQueja.click();
+      dispararCamaraFresco(async (file) => {
+        if (fotosQuejaTemporales.length >= 10) {
+          alert("Máximo 10 fotos por reporte de queja.");
+          return;
+        }
+        const fechaHoraStr = obtenerFechaHoraEstampada();
+        const tipoVal = document.getElementById("quejaTipo")?.value || "limpieza";
+        const etiqueta = `QUEJA (${tipoVal.toUpperCase()})`;
+        const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
+        if (comprimida) {
+          fotosQuejaTemporales.push({ src: comprimida, fechaHora: fechaHoraStr });
+        }
+        actualizarPreviewQueja();
+      });
     };
 
     window.limpiarFotosQuejaTemp = function () {
       fotosQuejaTemporales = [];
       actualizarPreviewQueja();
     };
-
-    inputCamaraQueja.addEventListener("change", async function (e) {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      if (fotosQuejaTemporales.length >= 10) {
-        alert("Máximo 10 fotos por reporte de queja.");
-        return;
-      }
-      const fechaHoraStr = obtenerFechaHoraEstampada();
-      const tipoVal = document.getElementById("quejaTipo")?.value || "limpieza";
-      const etiqueta = `QUEJA (${tipoVal.toUpperCase()})`;
-      const comprimida = await capturarYEstamparFotoAsync(file, etiqueta, fechaHoraStr, 560, 0.48);
-      if (comprimida) {
-        fotosQuejaTemporales.push({ src: comprimida, fechaHora: fechaHoraStr });
-      }
-      e.target.value = "";
-      actualizarPreviewQueja();
-    });
 
     window.publicarQuejaReporte = function () {
       const tipo = document.getElementById("quejaTipo")?.value || "limpieza";
@@ -3116,6 +3169,12 @@
     renderPaseLista();
     actualizarInterfazEncargada();
     renderQuejas();
+
+    const pendienteRev = obtenerRevisionPendiente();
+    if (pendienteRev && pendienteRev.imgData) {
+      cambiarVista("asistencia");
+      abrirRevisionFoto(pendienteRev);
+    }
   </script>
 
   <script>
